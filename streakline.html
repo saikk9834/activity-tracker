@@ -1,0 +1,836 @@
+<meta charset="utf-8">
+<title>Streakline — 12-Week Lean Plan</title>
+<style>
+  :root{
+    --bg:#EFF4F4; --card:#FFFFFF; --ink:#152A2F; --muted:#5A7176;
+    --line:#D8E2E2; --accent:#0E7F8A; --accent-ink:#0A5C64; --accent-soft:#DFEDEF;
+    --amber:#D98A24; --amber-ink:#9C6112; --amber-soft:#F7E9D4;
+    --miss:#C9D6D6; --ring:#0E7F8A;
+    --display:"Avenir Next","Avenir","Segoe UI Variable Display","Segoe UI",system-ui,sans-serif;
+    --body:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+    --mono:ui-monospace,"SF Mono","Cascadia Code","JetBrains Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0C181B; --card:#122226; --ink:#E3EDEE; --muted:#8FA6A9;
+      --line:#1E3237; --accent:#43B7C2; --accent-ink:#7AD3DB; --accent-soft:#0F2C31;
+      --amber:#E8A64B; --amber-ink:#F2C384; --amber-soft:#2C2113;
+      --miss:#233A3F; --ring:#43B7C2;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0C181B; --card:#122226; --ink:#E3EDEE; --muted:#8FA6A9;
+    --line:#1E3237; --accent:#43B7C2; --accent-ink:#7AD3DB; --accent-soft:#0F2C31;
+    --amber:#E8A64B; --amber-ink:#F2C384; --amber-soft:#2C2113;
+    --miss:#233A3F; --ring:#43B7C2;
+  }
+  :root[data-theme="light"]{
+    --bg:#EFF4F4; --card:#FFFFFF; --ink:#152A2F; --muted:#5A7176;
+    --line:#D8E2E2; --accent:#0E7F8A; --accent-ink:#0A5C64; --accent-soft:#DFEDEF;
+    --amber:#D98A24; --amber-ink:#9C6112; --amber-soft:#F7E9D4;
+    --miss:#C9D6D6; --ring:#0E7F8A;
+  }
+  html{background:var(--bg)}
+  body{background:var(--bg);color:var(--ink);font-family:var(--body);margin:0;
+    -webkit-font-smoothing:antialiased;line-height:1.55}
+  .wrap{max-width:680px;margin:0 auto;padding:0 16px 96px}
+
+  /* ---------- header ---------- */
+  header.app{padding:20px 0 0}
+  .brand{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+  .brand h1{font-family:var(--display);font-weight:800;font-size:1.5rem;letter-spacing:-.02em;margin:0}
+  .brand h1 span{color:var(--accent)}
+  .streak-badge{display:flex;align-items:center;gap:6px;font-family:var(--mono);
+    font-size:.95rem;font-variant-numeric:tabular-nums;color:var(--amber-ink);
+    background:var(--amber-soft);border:1px solid var(--amber);border-radius:999px;
+    padding:4px 12px;white-space:nowrap}
+  .streak-badge svg{flex:none}
+  .sub{color:var(--muted);font-size:.85rem;margin:4px 0 12px}
+  .lane{height:6px;border-radius:3px;margin:0 0 4px;
+    background:repeating-linear-gradient(90deg,var(--accent) 0 26px,transparent 26px 38px);
+    opacity:.45}
+
+  /* ---------- tabs ---------- */
+  nav.tabs{position:sticky;top:0;z-index:10;background:var(--bg);
+    display:flex;gap:4px;padding:10px 0;overflow-x:auto;scrollbar-width:none}
+  nav.tabs::-webkit-scrollbar{display:none}
+  nav.tabs button{font-family:var(--display);font-weight:600;font-size:.9rem;
+    border:1px solid transparent;background:none;color:var(--muted);
+    padding:7px 14px;border-radius:999px;cursor:pointer;white-space:nowrap}
+  nav.tabs button[aria-selected="true"]{background:var(--card);color:var(--accent-ink);
+    border-color:var(--accent)}
+  nav.tabs button:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+
+  /* ---------- cards & type ---------- */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:18px;margin:0 0 14px}
+  h2{font-family:var(--display);font-weight:700;font-size:1.15rem;margin:0 0 4px;
+    letter-spacing:-.01em;text-wrap:balance}
+  h3{font-family:var(--display);font-weight:700;font-size:1rem;margin:22px 0 6px;text-wrap:balance}
+  h3:first-child{margin-top:0}
+  p{margin:.5em 0;max-width:62ch}
+  .eyebrow{font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--accent-ink);margin:0 0 2px}
+  .eyebrow.amberev{color:var(--amber-ink)}
+  .muted{color:var(--muted)}
+  .small{font-size:.85rem}
+  .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  ul.tight{margin:.4em 0;padding-left:1.2em}
+  ul.tight li{margin:.35em 0;max-width:60ch}
+
+  .tw{overflow-x:auto;margin:.6em 0}
+  table{border-collapse:collapse;width:100%;font-size:.88rem}
+  th{font-family:var(--display);font-weight:600;text-align:left;color:var(--muted);
+    font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;
+    padding:6px 10px 6px 0;border-bottom:1px solid var(--line);white-space:nowrap}
+  td{padding:7px 10px 7px 0;border-bottom:1px solid var(--line);vertical-align:top}
+  td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+  tr:last-child td{border-bottom:none}
+
+  /* ---------- today checklist ---------- */
+  .day-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:2px}
+  .tag{font-family:var(--mono);font-size:.7rem;letter-spacing:.12em;padding:3px 9px;
+    border-radius:4px;text-transform:uppercase}
+  .tag.lift{background:var(--accent-soft);color:var(--accent-ink);border:1px solid var(--accent)}
+  .tag.swim{background:var(--accent-soft);color:var(--accent-ink);border:1px dashed var(--accent)}
+  .tag.rest{background:transparent;color:var(--muted);border:1px solid var(--line)}
+  .checklist{list-style:none;margin:12px 0 0;padding:0}
+  .checklist li{border-top:1px solid var(--line)}
+  .checkrow{display:flex;align-items:center;gap:12px;width:100%;padding:11px 0;cursor:pointer}
+  .checkrow input{position:absolute;opacity:0;width:1px;height:1px}
+  .box{flex:none;width:22px;height:22px;border:2px solid var(--muted);border-radius:6px;
+    display:grid;place-items:center;transition:background .15s,border-color .15s}
+  .box svg{opacity:0;transform:scale(.5);transition:opacity .15s,transform .15s}
+  .checkrow input:checked + .box{background:var(--accent);border-color:var(--accent)}
+  .checkrow input:checked + .box svg{opacity:1;transform:scale(1)}
+  .checkrow input:focus-visible + .box{outline:2px solid var(--ring);outline-offset:2px}
+  .ex{flex:1;min-width:0}
+  .ex .n{font-weight:600;font-size:.95rem}
+  .checkrow input:checked ~ .ex .n{color:var(--muted);text-decoration:line-through;
+    text-decoration-color:var(--accent)}
+  .ex .d{font-family:var(--mono);font-size:.78rem;color:var(--muted);font-variant-numeric:tabular-nums}
+  .wt{flex:none;font-family:var(--mono);font-size:.8rem;font-variant-numeric:tabular-nums;
+    color:var(--accent-ink);background:var(--accent-soft);border:1px solid var(--accent);
+    border-radius:6px;padding:3px 8px;cursor:pointer}
+  .wt:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+  .wt input{font:inherit;color:inherit;background:none;border:none;width:5.5em;outline:none}
+  .vidrow{margin-top:3px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .vlink{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:.78rem;
+    color:var(--accent-ink);text-decoration:none;border-bottom:1px solid var(--accent);padding-bottom:1px}
+  .vlink svg{flex:none}
+  .vedit{background:none;border:none;color:var(--muted);font-size:.75rem;cursor:pointer;padding:0;
+    text-decoration:underline;text-underline-offset:2px}
+  .vedit:focus-visible,.vlink:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+  .vinput{font:inherit;font-size:.8rem;color:var(--ink);background:var(--card);
+    border:1px solid var(--accent);border-radius:6px;padding:4px 8px;width:min(100%,300px)}
+  .plan-note{font-size:.82rem;color:var(--muted);border-left:2px solid var(--line);
+    padding-left:10px;margin:12px 0 0;max-width:58ch}
+  .prog-note{font-size:.82rem;color:var(--accent-ink);background:var(--accent-soft);
+    border-radius:8px;padding:9px 12px;margin:12px 0 0;max-width:100%}
+  .today-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    margin-top:16px;flex-wrap:wrap}
+  .count{font-family:var(--mono);font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums}
+  .btn{font-family:var(--display);font-weight:700;font-size:.95rem;color:#fff;
+    background:var(--accent);border:none;border-radius:8px;padding:11px 20px;cursor:pointer}
+  .btn:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+  :root[data-theme="dark"] .btn, .btn.darkfix{color:#07171A}
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .btn{color:#07171A} }
+  .done-banner{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:var(--amber-soft);border:1px solid var(--amber);border-radius:8px;
+    padding:12px 14px;margin-top:16px;flex-wrap:wrap}
+  .done-banner .t{font-weight:600;color:var(--amber-ink)}
+  .linkbtn{background:none;border:none;color:var(--muted);font-size:.8rem;cursor:pointer;
+    text-decoration:underline;padding:2px}
+  .nudge{font-size:.85rem;color:var(--amber-ink);background:var(--amber-soft);
+    border-radius:8px;padding:9px 12px;margin:0 0 12px}
+
+  /* ---------- week view ---------- */
+  details.day{border:1px solid var(--line);border-radius:10px;background:var(--card);
+    margin-bottom:10px;overflow:hidden}
+  details.day summary{display:flex;align-items:center;gap:10px;padding:13px 16px;
+    cursor:pointer;list-style:none;flex-wrap:wrap}
+  details.day summary::-webkit-details-marker{display:none}
+  details.day summary:focus-visible{outline:2px solid var(--ring);outline-offset:-2px}
+  details.day .dn{font-family:var(--display);font-weight:700;width:3.2em}
+  details.day .dt{flex:1;min-width:140px;font-size:.9rem}
+  details.day .dd{font-family:var(--mono);font-size:.75rem;color:var(--muted);white-space:nowrap}
+  details.day .inner{padding:2px 16px 14px;border-top:1px solid var(--line)}
+  details.day.today-hl{border-color:var(--accent)}
+  .exlist{list-style:none;margin:8px 0 0;padding:0}
+  .exlist li{display:block;padding:7px 0;border-top:1px solid var(--line);font-size:.9rem}
+  .exlist li:first-child{border-top:none}
+  .exlist .xtop{display:flex;justify-content:space-between;gap:12px}
+  .exlist .d{font-family:var(--mono);font-size:.78rem;color:var(--muted);text-align:right;
+    white-space:nowrap;font-variant-numeric:tabular-nums}
+
+  /* ---------- stats ---------- */
+  .statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:14px 12px;text-align:center}
+  .stat .v{font-family:var(--mono);font-weight:700;font-size:1.7rem;
+    font-variant-numeric:tabular-nums;color:var(--accent-ink)}
+  .stat.amber .v{color:var(--amber-ink)}
+  .stat .l{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .nextm{margin:4px 0 0}
+  .bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin:8px 0 4px}
+  .bar i{display:block;height:100%;background:var(--amber);border-radius:4px}
+  .heat{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,16px);gap:3px;
+    justify-content:start;overflow-x:auto;padding:4px 0}
+  .cell{width:16px;height:16px;border-radius:4px;background:var(--miss);border:none;padding:0}
+  .cell.on{background:var(--accent)}
+  .cell.future{background:transparent;border:1px dashed var(--line)}
+  .cell.today{outline:2px solid var(--amber);outline-offset:1px}
+  .cell.tappable{cursor:pointer}
+  .cell:focus-visible{outline:2px solid var(--ring);outline-offset:1px}
+  .legend{font-size:.72rem;color:var(--muted);display:flex;gap:14px;margin-top:6px}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .mlist{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .mchip{font-family:var(--mono);font-size:.8rem;font-variant-numeric:tabular-nums;
+    padding:5px 11px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+  .mchip.hit{border-color:var(--amber);background:var(--amber-soft);color:var(--amber-ink);font-weight:700}
+
+  /* ---------- celebration ---------- */
+  #celebrate{position:fixed;inset:0;z-index:50;display:none}
+  #celebrate.show{display:block}
+  #cfx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  .scrim{position:absolute;inset:0;background:rgba(7,18,21,.6)}
+  .cel-card{position:relative;z-index:2;max-width:420px;margin:22vh auto 0;
+    background:var(--card);border:1px solid var(--amber);border-radius:14px;
+    padding:30px 26px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.35)}
+  .cel-card .big{font-family:var(--mono);font-weight:800;font-size:2.6rem;
+    color:var(--amber-ink);font-variant-numeric:tabular-nums;line-height:1.1}
+  .cel-card .lbl{font-family:var(--display);font-weight:700;letter-spacing:.14em;
+    text-transform:uppercase;font-size:.8rem;color:var(--accent-ink);margin-top:2px}
+  .cel-card .q{margin:16px auto 20px;font-size:1.02rem;max-width:32ch;text-wrap:balance}
+  @media (prefers-reduced-motion: no-preference){
+    .cel-card{animation:pop .35s cubic-bezier(.2,1.4,.4,1)}
+    @keyframes pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+  }
+
+  /* ---------- toast ---------- */
+  #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:var(--bg);font-size:.9rem;padding:10px 18px;
+    border-radius:999px;opacity:0;transition:opacity .25s,transform .25s;z-index:40;
+    pointer-events:none;white-space:nowrap}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media (max-width:420px){
+    .statgrid{grid-template-columns:repeat(3,1fr);gap:6px}
+    .stat .v{font-size:1.4rem}
+  }
+</style>
+
+<div class="wrap">
+  <header class="app">
+    <div class="brand">
+      <h1>Streak<span>line</span></h1>
+      <div class="streak-badge" id="hdrStreak" title="Current streak">
+        <svg width="13" height="15" viewBox="0 0 12 14" aria-hidden="true"><path d="M6 0C6 3 2 4.5 2 8.5C2 11.5 3.8 14 6 14C8.2 14 10 11.5 10 8.5C10 6.8 9.2 5.6 8.4 4.6C8.2 6 7.4 6.8 6.8 6.8C7.6 4.6 7 1.8 6 0Z" fill="currentColor"/></svg>
+        <span id="hdrStreakN">0</span>
+      </div>
+    </div>
+    <p class="sub">Your 12-week lean plan — YMCA pool + gym, vegetarian fuel, one X per day.</p>
+    <div class="lane" aria-hidden="true"></div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button role="tab" data-view="today" aria-selected="true">Today</button>
+    <button role="tab" data-view="week" aria-selected="false">Week</button>
+    <button role="tab" data-view="guide" aria-selected="false">Guide</button>
+    <button role="tab" data-view="food" aria-selected="false">Food</button>
+    <button role="tab" data-view="stats" aria-selected="false">Streak</button>
+  </nav>
+
+  <main>
+    <section id="view-today" role="tabpanel"></section>
+
+    <section id="view-week" role="tabpanel" hidden>
+      <p class="small muted" style="margin-top:4px">The template repeats every week, all 12 weeks. If life explodes, the priority order is <strong>lifts &gt; interval swims &gt; everything else</strong> — a week with 3 lifts and nothing else is a successful week. Tap a weight chip on the Today tab to update it as you progress, and use <strong>+ add video</strong> under any exercise to attach a form-check link — it opens with one tap mid-workout.</p>
+      <div id="weekList"></div>
+    </section>
+
+    <section id="view-guide" role="tabpanel" hidden>
+      <div class="card">
+        <p class="eyebrow">Your numbers</p>
+        <h2>The starting point</h2>
+        <div class="tw"><table>
+          <tr><td>BMI</td><td class="num">24.5</td><td class="muted small">82 kg at 183 cm — normal weight</td></tr>
+          <tr><td>Estimated TDEE</td><td class="num">~2,500 kcal</td><td class="muted small">maintenance burn</td></tr>
+          <tr><td>Daily calorie target</td><td class="num">2,200–2,300 kcal</td><td class="muted small">mild deficit — the recomposition zone</td></tr>
+          <tr><td>Daily protein target</td><td class="num">130–150 g</td><td class="muted small">the non-negotiable number</td></tr>
+        </table></div>
+        <p class="small">You're not overweight — you're under-muscled with fat stored at the belly. The goal is <strong>recomposition</strong>: losing fat and building muscle at the same time, which beginners can absolutely do with a mild deficit and high protein. You cannot spot-reduce belly fat: it leaves when overall body fat drops, and it's the last place to go. Expect the waist to move around weeks 8–12, not week 3.</p>
+      </div>
+
+      <div class="card">
+        <p class="eyebrow">Consistency</p>
+        <h2>The five mechanics that keep you going</h2>
+        <h3>Shrink the promise, keep the frequency</h3>
+        <p class="small">Your commitment is <em>"I go to the YMCA on my scheduled days"</em> — not 30 minutes, not a specific workout. On a terrible day, 10 minutes counts as a win. You're training the habit of <em>going</em>; intensity is easy to add to a habit that exists.</p>
+        <h3>Decide once, in the calendar</h3>
+        <p class="small">Vague plans fail; scheduled ones succeed. The sessions live in your calendar like standup meetings. You never decide <em>whether</em> — that decision is already made.</p>
+        <h3>Stack the habit on your work shutdown</h3>
+        <p class="small">Close laptop → gym bag already packed by the door → leave immediately. The couch gap between work and workout is where the habit dies — eliminate it.</p>
+        <h3>Never miss twice</h3>
+        <p class="small">Missing one day is noise. Missing two in a row is the start of a new (bad) habit. A missed day must be followed by an attended day, even a 15-minute one.</p>
+        <h3>Track appearances, not outcomes</h3>
+        <p class="small">Your metric for the first 12 weeks is X's per month (aim for 24+ here), not kilograms. Weigh twice a week, judge only the 7-day average — daily ±1 kg swings are water, not fat.</p>
+      </div>
+
+      <div class="card">
+        <p class="eyebrow">Lifting</p>
+        <h2>The progression rule</h2>
+        <p class="small">This is the entire "how much weight" answer, forever — <strong>double progression</strong>:</p>
+        <ul class="tight small">
+          <li>Each exercise has a rep range (e.g. 8–12). When you complete <strong>all sets at the top of the range</strong> with honest form (~2 reps left in the tank), add weight next session: <span class="mono">+2.5 kg</span> upper body, <span class="mono">+5 kg</span> leg press and machines, next dumbbell up.</li>
+          <li>The new weight drops you back to ~8 reps. Climb back to 12. Repeat.</li>
+          <li>If you can't beat your logbook two sessions in a row, the weight stays. That's normal.</li>
+        </ul>
+        <h3>Effort dial across the 12 weeks</h3>
+        <div class="tw"><table>
+          <tr><td class="num">Weeks 1–2</td><td>Stop 3–4 reps short of failure — calibrate, learn form, log every weight</td></tr>
+          <tr><td class="num">Weeks 3–6</td><td>Stop 2–3 reps short</td></tr>
+          <tr><td class="num">Weeks 7–12</td><td>Stop 1–2 reps short on the last set of each exercise</td></tr>
+        </table></div>
+        <p class="small muted">Warm-up before every lift: 5 min brisk incline walk, then one light set (~50%) of the first two exercises. The starting weights in this app are first guesses for an untrained 82 kg man — week 1's job is to correct them and tap the chips to save yours.</p>
+      </div>
+
+      <div class="card">
+        <p class="eyebrow">Swimming</p>
+        <h2>Swim days, decoded</h2>
+        <p class="small"><strong>A length</strong> = one end of the pool to the other, once (~30–45 s for a beginner). <strong>A round</strong> = a swim plus the rest after it. <strong>Effort /10</strong>: 4–5 = relaxed, could chat; 7 = breathing hard but recovered in ~30 s; 9 = near max — never required.</p>
+        <p class="small">All your swim time is <strong>broken into short pieces with rest</strong> — ten one-length swims with rests gives more quality work than ten minutes of sloppy continuous struggle. That's why these sessions are doable even though "swim 30 minutes straight" wasn't.</p>
+        <ul class="tight small">
+          <li><strong>Tuesday — the workout swim.</strong> Hard on purpose; this is the fat-loss engine. Recovered before the rest ends? Swim harder. Rest not enough? Ease off a notch.</li>
+          <li><strong>Thursday — the recovery swim.</strong> Deliberately the easiest session of the week. No counting, no targets — don't turn it into a second workout; Friday needs fresh legs.</li>
+          <li><strong>Saturday — the pyramid.</strong> Climb 1-2-3-4 lengths and back down at a steady 6–7/10. The peak quietly grows every 2 weeks, and in a few months "20+ lengths straight" falls out of it naturally.</li>
+        </ul>
+        <p class="small muted">Scaling any swim: too hard → rest longer or cut rounds (never swim sloppy); too easy → shorten rests first, then add rounds. Terrible day → 6 easy lengths and out. The X still counts.</p>
+      </div>
+
+      <div class="card">
+        <p class="eyebrow">Expectations</p>
+        <h2>When results arrive</h2>
+        <div class="tw"><table>
+          <tr><th>When</th><th>What actually happens</th></tr>
+          <tr><td class="num">Wk 1–2</td><td>Scale may drop 1–2 kg fast (water, not fat). Sleep improves. Soreness peaks, then fades for good.</td></tr>
+          <tr><td class="num">Wk 2–3</td><td>Strength jumps session to session. Desk energy noticeably better.</td></tr>
+          <tr><td class="num">Wk 4–6</td><td><em>You</em> see it: leaner face, looser waistband. −1.5 to −3 kg; waist −1 to −3 cm.</td></tr>
+          <tr><td class="num">Wk 8–12</td><td>Others notice. −3 to −5 kg, waist −3 to −6 cm, every lift up 30–60%.</td></tr>
+          <tr><td class="num">Mo 4–6</td><td>Upper abs start ghosting in under good light.</td></tr>
+          <tr><td class="num">Mo 6–9</td><td>Full abs territory (~12–14% body fat) if nutrition held ~80%+.</td></tr>
+        </table></div>
+        <p class="small">Two warnings: the scale <strong>will</strong> stall for 1–2 week stretches while the waist keeps shrinking — that's muscle being added under the fat, i.e. the plan working; judge by tape measure and photos (same spot, same light, every 2 weeks). And the bottleneck is never the workouts — the kitchen decides when you get to see the shape the gym builds.</p>
+      </div>
+    </section>
+
+    <section id="view-food" role="tabpanel" hidden>
+      <div class="card">
+        <p class="eyebrow">The target</p>
+        <h2>130–150 g protein · ~2,250 kcal · every day</h2>
+        <p class="small">Muscle-building benefit plateaus around 1.6–1.8 g/kg — that's 130–148 g at 82 kg. <strong>130 g is the floor, 150 g is a great day.</strong> Vegetarian protein arrives with carbs or fat attached, so the structure below matters more than heroics: <strong>30–40 g protein per meal, four times a day</strong>, each meal anchored by a Tier 1 food.</p>
+      </div>
+
+      <div class="card">
+        <p class="eyebrow">Tier 1</p>
+        <h2>Protein-dense, calorie-cheap — build every meal on one</h2>
+        <div class="tw"><table>
+          <tr><th>Food</th><th>Serving</th><th>Protein</th><th>kcal</th></tr>
+          <tr><td>Whey protein <span class="muted small">(it's vegetarian — a milk protein)</span></td><td class="num">1 scoop (30 g)</td><td class="num">24 g</td><td class="num">120</td></tr>
+          <tr><td>Soy chunks</td><td class="num">50 g dry</td><td class="num">26 g</td><td class="num">~170</td></tr>
+          <tr><td>Greek yogurt / hung curd (nonfat)</td><td class="num">250 g bowl</td><td class="num">26 g</td><td class="num">~150</td></tr>
+          <tr><td>Tofu (firm)</td><td class="num">150 g</td><td class="num">16 g</td><td class="num">~130</td></tr>
+          <tr><td>Milk (low-fat)</td><td class="num">300 ml</td><td class="num">10 g</td><td class="num">~150</td></tr>
+        </table></div>
+      </div>
+
+      <div class="card">
+        <p class="eyebrow">Tier 2</p>
+        <h2>Good protein, carbs/fat attached — 1–2 portions a day</h2>
+        <div class="tw"><table>
+          <tr><th>Food</th><th>Serving</th><th>Protein</th><th>Note</th></tr>
+          <tr><td>Soybeans (boiled)</td><td class="num">150 g</td><td class="num">27 g</td><td class="muted small">complete protein</td></tr>
+          <tr><td>Paneer (full-fat)</td><td class="num">100 g</td><td class="num">18 g</td><td class="muted small">~290 kcal — weigh it, don't freestyle</td></tr>
+          <tr><td>Dal / lentils</td><td class="num">200 g (2 katoris)</td><td class="num">18 g</td><td class="muted small"></td></tr>
+          <tr><td>Chickpeas / chana</td><td class="num">200 g</td><td class="num">18 g</td><td class="muted small">rajma, tempeh similar</td></tr>
+        </table></div>
+        <p class="small muted"><strong>Tier 3 — flavor, not foundation:</strong> peanut butter (2 tbsp = 8 g protein but 190 kcal), nuts, cheese. <strong>Traps:</strong> roti, rice and most vegetables give 2–4 g each — count as bonus, never as a source. A "healthy-feeling" day with no anchors (poha → dal-rice → veg pasta) quietly totals 55 g.</p>
+      </div>
+
+      <div class="card">
+        <p class="eyebrow">Sample day</p>
+        <h2>~144 g protein · ~2,250 kcal</h2>
+        <div class="tw"><table>
+          <tr><th>Meal</th><th>What</th><th>Protein</th></tr>
+          <tr><td>Breakfast</td><td>250 g Greek yogurt / hung curd + fruit + small handful of oats</td><td class="num">28 g</td></tr>
+          <tr><td>Lunch</td><td>Dal (2 katoris) + 100 g paneer sabzi + 2 roti + salad</td><td class="num">42 g</td></tr>
+          <tr><td>Post-workout</td><td>1 scoop whey in 300 ml milk</td><td class="num">34 g</td></tr>
+          <tr><td>Dinner</td><td>Soy chunk curry (50 g dry) + 1 cup rice + vegetables</td><td class="num">30 g</td></tr>
+          <tr><td>Through the day</td><td>Chai milk, a few peanuts, dahi with dinner</td><td class="num">~10 g</td></tr>
+        </table></div>
+        <p class="small muted">Swap freely within tiers: tofu bhurji for paneer, chana for dal, a second whey scoop on a rushed day.</p>
+      </div>
+
+      <div class="card">
+        <p class="eyebrow">Desk-worker rules</p>
+        <h2>The guardrails</h2>
+        <ul class="tight small">
+          <li><strong>Protein first</strong> at each meal — most satiating macro, kills the 4 pm snack drift.</li>
+          <li><strong>Liquid calories are the belly-fat budget.</strong> Sugary drinks, juices, fancy coffees, alcohol — the easiest 300–500 kcal to delete. Beer is a double hit: calories + worse sleep, and poor sleep increases belly-fat storage.</li>
+          <li><strong>Don't drink the deficit back after swimming.</strong> A 30-min swim burns ~250–350 kcal and spikes hunger; have yogurt or a shake ready.</li>
+          <li><strong>Fight the chair.</strong> 10-min walks after lunch and dinner, pace during calls — worth 150–300 kcal/day, as much as the swim.</li>
+          <li><strong>Weekends count.</strong> Keep the breakfast + protein structure; loosen dinner, not the whole day.</li>
+          <li><strong>Adjust by the trend:</strong> target 0.25–0.5 kg/week down on the 7-day average. Faster → add ~150 kcal. Flat 2+ weeks <em>and</em> waist stuck → cut ~150 kcal. Scale flat but waist shrinking → recomposition working, change nothing.</li>
+          <li><strong>B12 is covered by dairy.</strong> Mind iron (dal, rajma, spinach + lemon/tomato for absorption).</li>
+          <li><strong>Creatine monohydrate 3–5 g/day</strong> — vegetarian, cheap, best-studied supplement there is, and vegetarians see the biggest benefit. If you buy one thing besides whey, it's this.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="view-stats" role="tabpanel" hidden>
+      <div id="statsBody"></div>
+    </section>
+  </main>
+</div>
+
+<div id="celebrate" role="dialog" aria-modal="true" aria-label="Milestone reached">
+  <div class="scrim"></div>
+  <canvas id="cfx"></canvas>
+  <div class="cel-card">
+    <div class="big" id="celN">7</div>
+    <div class="lbl" id="celL">day streak</div>
+    <p class="q" id="celQ"></p>
+    <button class="btn" id="celBtn">Keep going</button>
+  </div>
+</div>
+
+<div id="toast" role="status"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------------- data ---------------- */
+var PLAN=[
+ {name:"Monday",tag:"lift",tagLabel:"Lift",title:"Workout A — Push",dur:"45–50 min",
+  note:"Warm-up: 5 min brisk incline walk + 1 light set of the first two moves.",
+  prog:"Hit the top of every rep range? Add 2.5 kg (or next dumbbell) next session.",
+  items:[
+   {id:"a1",n:"Goblet squat",d:"3 × 10–12 · rest 2 min",w:"12 kg"},
+   {id:"a2",n:"Machine chest press",d:"3 × 8–12 · rest 2 min",w:"27.5 kg"},
+   {id:"a3",n:"Incline dumbbell press",d:"3 × 8–12 · rest 2 min",w:"10 kg/hand"},
+   {id:"a4",n:"Seated DB shoulder press",d:"3 × 8–12 · rest 90 s",w:"8 kg/hand"},
+   {id:"a5",n:"Dumbbell lateral raise",d:"3 × 12–15 · rest 60 s",w:"5 kg"},
+   {id:"a6",n:"Cable triceps pushdown",d:"2 × 10–15 · rest 60 s",w:"17.5 kg"},
+   {id:"a7",n:"Forearm plank",d:"3 × 30–45 s · rest 60 s",w:null}
+  ]},
+ {name:"Tuesday",tag:"swim",tagLabel:"Swim",title:"Interval swim",dur:"~25 min",
+  note:"Recovered before the rest ends? Swim harder next round. 30 s not enough? Ease off a notch. This is the fat-loss engine — hard on purpose.",
+  prog:null,
+  items:[
+   {id:"t1",n:"Warm-up",d:"2 lengths, very easy (4/10)",w:null},
+   {id:"t2",n:"Main set",d:"8 × (1 length @ 7/10 → rest 20–30 s)",w:null},
+   {id:"t3",n:"Cool-down",d:"1–2 lengths, dead easy",w:null}
+  ]},
+ {name:"Wednesday",tag:"lift",tagLabel:"Lift",title:"Workout B — Pull",dur:"45–50 min",
+  note:"Warm-up: 5 min brisk incline walk + 1 light set of the first two moves.",
+  prog:"Hit the top of every rep range? Add 2.5 kg (or next dumbbell) next session.",
+  items:[
+   {id:"b1",n:"Romanian deadlift (dumbbells)",d:"3 × 10–12 · rest 2 min",w:"14 kg/hand"},
+   {id:"b2",n:"Lat pulldown",d:"3 × 8–12 · rest 2 min",w:"37.5 kg"},
+   {id:"b3",n:"Seated cable row",d:"3 × 8–12 · rest 2 min",w:"37.5 kg"},
+   {id:"b4",n:"Facepull (cable)",d:"3 × 12–15 · rest 60 s",w:"17.5 kg"},
+   {id:"b5",n:"Dumbbell curl",d:"2 × 10–15 · rest 60 s",w:"7.5 kg/hand"},
+   {id:"b6",n:"Deadbug",d:"3 × 8/side · rest 60 s",w:null},
+   {id:"b7",n:"Hanging knee raise",d:"2 × 8–12 · rest 90 s",w:null}
+  ]},
+ {name:"Thursday",tag:"swim",tagLabel:"Swim",title:"Recovery swim + core",dur:"~30 min",
+  note:"Deliberately the easiest session of the week. No counting, no targets — and no turning it into a workout: Friday needs fresh legs.",
+  prog:null,
+  items:[
+   {id:"h1",n:"Easy swim",d:"15–20 min @ 4–5/10, rest whenever",w:null},
+   {id:"h2",n:"Core circuit",d:"3 × (deadbug 8/side · side plank 20 s/side · hollow hold 15 s)",w:null}
+  ]},
+ {name:"Friday",tag:"lift",tagLabel:"Lift",title:"Workout C — Legs + full body",dur:"45–50 min",
+  note:"Warm-up: 5 min brisk incline walk + 1 light set of the first two moves.",
+  prog:"Hit the top of every rep range? Add 5 kg on leg press/machines, 2.5 kg elsewhere.",
+  items:[
+   {id:"c1",n:"Leg press",d:"3 × 10–12 · rest 2 min",w:"70 kg"},
+   {id:"c2",n:"Leg curl machine",d:"3 × 10–15 · rest 90 s",w:"27.5 kg"},
+   {id:"c3",n:"Step-ups onto bench",d:"3 × 8/leg · rest 90 s",w:"7 kg/hand"},
+   {id:"c4",n:"Standing calf raise",d:"3 × 12–15 · rest 60 s",w:"40 kg"},
+   {id:"c5",n:"Machine chest fly or push-ups",d:"2 × 10–15 · rest 90 s",w:"20 kg"},
+   {id:"c6",n:"Cable woodchoppers",d:"3 × 10/side · rest 60 s",w:"12.5 kg"},
+   {id:"c7",n:"Side plank",d:"2 × 20–30 s/side · rest 60 s",w:null}
+  ]},
+ {name:"Saturday",tag:"swim",tagLabel:"Swim",title:"Pyramid swim",dur:"~30 min",
+  note:"All at a steady 6–7/10 — a pace you could hold, not a sprint. Add a length to the peak every 2 weeks.",
+  prog:null,
+  items:[
+   {id:"s1",n:"Pyramid up",d:"1 → 2 → 3 → 4 lengths · 30 s rest between",w:null},
+   {id:"s2",n:"Pyramid down",d:"3 → 2 → 1 lengths · 30 s rest between",w:null}
+  ]},
+ {name:"Sunday",tag:"rest",tagLabel:"Active rest",title:"Walk + stretch",dur:"45–60 min",
+  note:"Outside, podcast on. Rest days are part of the program — muscle is built here, not in the gym.",
+  prog:null,
+  items:[
+   {id:"r1",n:"Walk",d:"45–60 min, easy pace",w:null},
+   {id:"r2",n:"Stretch",d:"10 min full body",w:null}
+  ]}
+];
+
+var MILESTONES=[
+ {d:1,q:"Day one is the hardest rep of the whole program. It’s done."},
+ {d:3,q:"Three days. The couch gap between laptop and gym bag is losing."},
+ {d:7,q:"A full week of X’s. Every one is a vote for the person you’re becoming."},
+ {d:14,q:"Two weeks. Your nervous system is learning fast — the mirror is next."},
+ {d:30,q:"One month. You’re not starting anymore. You’re continuing."},
+ {d:60,q:"Two months. This is the week people start noticing. Let them."},
+ {d:90,q:"Twelve weeks — the whole arc you planned. Open the logbook and look at week one."},
+ {d:180,q:"Six months. Abs territory. The kitchen got you here — keep it honest."},
+ {d:365,q:"One year of showing up. The habit isn’t the plan anymore. It’s you."}
+];
+
+var TOASTS=[
+ "Logged. Attendance is the habit.",
+ "Another X on the calendar.",
+ "Showed up. That was the whole job.",
+ "Logbook fed. See you tomorrow."
+];
+
+/* ---------------- storage ---------------- */
+function load(k,f){try{var v=JSON.parse(localStorage.getItem("sl_"+k));return v===null||v===undefined?f:v}catch(e){return f}}
+function save(k,v){try{localStorage.setItem("sl_"+k,JSON.stringify(v))}catch(e){}}
+var done=load("done",{});      // {"YYYY-MM-DD":true}
+var checks=load("checks",{});  // {"YYYY-MM-DD":["a1",...]}
+var weights=load("weights",{});// {"a1":"14 kg"}
+var links=load("links",{});    // {"a1":"https://..."}
+
+/* ---------------- dates ---------------- */
+function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function addDays(d,n){var x=new Date(d);x.setDate(x.getDate()+n);return x}
+function planIndex(d){return (d.getDay()+6)%7}
+function fmtDate(d){return d.toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"})}
+var renderedDate=iso(new Date());
+
+/* ---------------- streak math ---------------- */
+function streakEnding(end){var s=0,d=new Date(end);while(done[iso(d)]){s++;d=addDays(d,-1)}return s}
+function currentStreak(){var t=new Date();return done[iso(t)]?streakEnding(t):streakEnding(addDays(t,-1))}
+function bestStreak(){
+  var keys=Object.keys(done).filter(function(k){return done[k]}).sort();
+  var best=0,run=0,prev=null;
+  keys.forEach(function(k){
+    if(prev){
+      var p=new Date(prev+"T12:00:00"),c=new Date(k+"T12:00:00");
+      run=(Math.round((c-p)/86400000)===1)?run+1:1;
+    } else run=1;
+    if(run>best)best=run;
+    prev=k;
+  });
+  return best;
+}
+function totalSessions(){return Object.keys(done).filter(function(k){return done[k]}).length}
+
+/* ---------------- els ---------------- */
+function el(q){return document.querySelector(q)}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+var todayView=el("#view-today"),weekList=el("#weekList"),statsBody=el("#statsBody");
+
+/* ---------------- tabs ---------------- */
+document.querySelectorAll("nav.tabs button").forEach(function(b){
+  b.addEventListener("click",function(){
+    document.querySelectorAll("nav.tabs button").forEach(function(x){x.setAttribute("aria-selected","false")});
+    b.setAttribute("aria-selected","true");
+    ["today","week","guide","food","stats"].forEach(function(v){
+      el("#view-"+v).hidden=(v!==b.dataset.view);
+    });
+    window.scrollTo({top:0});
+  });
+});
+
+/* ---------------- weight chips ---------------- */
+function wtChip(item){
+  if(!item.w)return "";
+  var v=weights[item.id]||item.w;
+  return '<button class="wt" data-wt="'+item.id+'" title="Tap to update weight">'+esc(v)+"</button>";
+}
+function bindWts(root){
+  root.querySelectorAll("[data-wt]").forEach(function(btn){
+    btn.addEventListener("click",function(e){
+      e.preventDefault();e.stopPropagation();
+      if(btn.querySelector("input"))return;
+      var id=btn.dataset.wt,cur=weights[id]||findItem(id).w;
+      btn.innerHTML='<input type="text" value="'+esc(cur)+'" aria-label="Weight">';
+      var inp=btn.querySelector("input");
+      inp.focus();inp.select();
+      function commit(){
+        var v=inp.value.trim();
+        if(v){if(/^\d+([.,]\d+)?$/.test(v))v=v+" kg";weights[id]=v;save("weights",weights)}
+        renderToday();renderWeek();
+      }
+      inp.addEventListener("blur",commit);
+      inp.addEventListener("keydown",function(ev){if(ev.key==="Enter")inp.blur();if(ev.key==="Escape"){inp.value=cur;inp.blur()}});
+    });
+  });
+}
+/* ---------------- video links ---------------- */
+var PLAYSVG='<svg width="9" height="10" viewBox="0 0 9 10" aria-hidden="true"><path d="M0.5 0.5L8.5 5L0.5 9.5Z" fill="currentColor"/></svg>';
+function vidRow(item){
+  var url=links[item.id];
+  return '<span class="vidrow">'+
+    (url?'<a class="vlink" href="'+esc(url)+'" target="_blank" rel="noopener">'+PLAYSVG+"watch</a>":"")+
+    '<button class="vedit" data-vid="'+item.id+'">'+(url?"change":"+ add video")+"</button></span>";
+}
+function bindVids(root){
+  root.querySelectorAll("[data-vid]").forEach(function(btn){
+    btn.addEventListener("click",function(e){
+      e.preventDefault();e.stopPropagation();
+      var id=btn.dataset.vid,row=btn.parentElement,cur=links[id]||"";
+      row.innerHTML='<input class="vinput" type="url" value="'+esc(cur)+'" placeholder="Paste a YouTube or web link" aria-label="Video link">';
+      var inp=row.querySelector("input");
+      inp.focus();
+      function commit(){
+        var v=inp.value.trim();
+        if(v&&!/^https?:\/\//i.test(v))v="https://"+v;
+        if(v)links[id]=v;else delete links[id];
+        save("links",links);
+        renderToday();renderWeek();
+      }
+      inp.addEventListener("blur",commit);
+      inp.addEventListener("keydown",function(ev){if(ev.key==="Enter")inp.blur();if(ev.key==="Escape"){inp.value=cur;inp.blur()}});
+    });
+  });
+  root.querySelectorAll(".vlink").forEach(function(a){
+    a.addEventListener("click",function(e){e.stopPropagation()});
+  });
+}
+
+function findItem(id){
+  for(var i=0;i<PLAN.length;i++)for(var j=0;j<PLAN[i].items.length;j++)
+    if(PLAN[i].items[j].id===id)return PLAN[i].items[j];
+  return {w:""};
+}
+
+/* ---------------- today ---------------- */
+function renderToday(){
+  var d=new Date(),k=iso(d),p=PLAN[planIndex(d)];
+  var chk=checks[k]||[];
+  var isDone=!!done[k];
+  var y=iso(addDays(d,-1)),y2=iso(addDays(d,-2));
+  var nudge=(!done[y]&&done[y2]&&!isDone)?
+    '<div class="nudge">Yesterday slipped. Today makes it noise, not a pattern — never miss twice.</div>':"";
+
+  var rows=p.items.map(function(it,i){
+    var c=chk.indexOf(it.id)>=0;
+    return '<li><label class="checkrow">'+
+      '<input type="checkbox" data-ex="'+it.id+'"'+(c?" checked":"")+">"+
+      '<span class="box"><svg width="13" height="11" viewBox="0 0 13 11" aria-hidden="true"><path d="M1.5 5.5L5 9L11.5 1.5" stroke="white" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'+
+      '<span class="ex"><span class="n">'+esc(it.n)+'</span><br><span class="d">'+esc(it.d)+"</span>"+vidRow(it)+"</span>"+
+      wtChip(it)+"</label></li>";
+  }).join("");
+
+  var foot=isDone?
+    '<div class="done-banner"><span class="t">Day logged. Streak: '+currentStreak()+' 🔥</span>'+
+    '<button class="linkbtn" id="undoBtn">undo</button></div>':
+    '<div class="today-foot"><span class="count">'+chk.length+" / "+p.items.length+" done</span>"+
+    '<button class="btn" id="doneBtn">Mark day complete</button></div>';
+
+  todayView.innerHTML=nudge+
+    '<div class="card">'+
+    '<p class="eyebrow">'+esc(fmtDate(d))+"</p>"+
+    '<div class="day-head"><h2>'+esc(p.title)+'</h2><span class="tag '+p.tag+'">'+esc(p.tagLabel)+'</span><span class="count">'+esc(p.dur)+"</span></div>"+
+    '<ul class="checklist">'+rows+"</ul>"+
+    (p.prog?'<div class="prog-note">'+esc(p.prog)+"</div>":"")+
+    '<p class="plan-note">'+esc(p.note)+"</p>"+
+    foot+"</div>"+
+    '<p class="small muted" style="max-width:60ch">Shrunk the session? Mark the day complete anyway — attendance is the habit; the workout is just what you do while you’re there.</p>';
+
+  todayView.querySelectorAll("[data-ex]").forEach(function(cb){
+    cb.addEventListener("change",function(){
+      var arr=checks[k]||[];var id=cb.dataset.ex;
+      if(cb.checked){if(arr.indexOf(id)<0)arr.push(id)}
+      else arr=arr.filter(function(x){return x!==id});
+      checks[k]=arr;save("checks",checks);
+      if(arr.length===p.items.length&&!done[k]){completeDay()}
+      else renderToday();
+    });
+  });
+  var db=el("#doneBtn");if(db)db.addEventListener("click",completeDay);
+  var ub=el("#undoBtn");if(ub)ub.addEventListener("click",function(){
+    delete done[k];save("done",done);refreshAll();
+  });
+  bindWts(todayView);
+  bindVids(todayView);
+  el("#hdrStreakN").textContent=currentStreak();
+}
+
+function completeDay(){
+  var k=iso(new Date());
+  if(done[k])return;
+  done[k]=true;save("done",done);
+  refreshAll();
+  var s=currentStreak();
+  var m=null;
+  for(var i=0;i<MILESTONES.length;i++)if(MILESTONES[i].d===s)m=MILESTONES[i];
+  if(m)celebrate(m);
+  else toast(TOASTS[Math.floor(Math.random()*TOASTS.length)]);
+}
+
+/* ---------------- week ---------------- */
+function renderWeek(){
+  var ti=planIndex(new Date());
+  var openStates=[].map.call(weekList.querySelectorAll("details"),function(d){return d.open});
+  weekList.innerHTML=PLAN.map(function(p,i){
+    var rows=p.items.map(function(it){
+      var w=it.w?(weights[it.id]||it.w):null;
+      return '<li><div class="xtop"><span>'+esc(it.n)+(w?' <span class="mono small" style="color:var(--accent-ink)">'+esc(w)+"</span>":"")+
+        '</span><span class="d">'+esc(it.d)+"</span></div>"+vidRow(it)+"</li>";
+    }).join("");
+    return '<details class="day'+(i===ti?" today-hl":"")+'"'+(i===ti?" open":"")+">"+
+      '<summary><span class="dn">'+p.name.slice(0,3)+'</span><span class="dt">'+esc(p.title)+"</span>"+
+      '<span class="tag '+p.tag+'">'+esc(p.tagLabel)+'</span><span class="dd">'+esc(p.dur)+"</span></summary>"+
+      '<div class="inner"><ul class="exlist">'+rows+"</ul>"+
+      (p.prog?'<div class="prog-note">'+esc(p.prog)+"</div>":"")+
+      '<p class="plan-note">'+esc(p.note)+"</p></div></details>";
+  }).join("");
+  if(openStates.length)weekList.querySelectorAll("details").forEach(function(d,i){d.open=openStates[i]});
+  bindVids(weekList);
+}
+
+/* ---------------- stats ---------------- */
+function renderStats(){
+  var cur=currentStreak(),best=bestStreak(),tot=totalSessions();
+  var next=null;
+  for(var i=0;i<MILESTONES.length;i++)if(MILESTONES[i].d>cur){next=MILESTONES[i];break}
+  var pct=next?Math.min(100,Math.round(cur/next.d*100)):100;
+
+  var today=new Date();
+  var monday=addDays(today,-planIndex(today));
+  var start=addDays(monday,-77); // 11 weeks before this week's Monday = 12 columns
+  var cells="";
+  for(var w=0;w<12;w++){
+    for(var r=0;r<7;r++){
+      var d=addDays(start,w*7+r),k=iso(d);
+      var future=d>today&&k!==iso(today);
+      var isToday=k===iso(today);
+      var recent=(today-d)/86400000<7&&!future;
+      var cls="cell"+(done[k]?" on":future?" future":"")+(isToday?" today":"")+(recent?" tappable":"");
+      var lbl=d.toLocaleDateString(undefined,{month:"short",day:"numeric"})+(done[k]?" — done":"");
+      cells+=recent?
+        '<button class="'+cls+'" data-day="'+k+'" title="'+esc(lbl)+'" aria-label="'+esc(lbl)+'"></button>':
+        '<span class="'+cls+'" title="'+esc(lbl)+'"></span>';
+    }
+  }
+  var chips=MILESTONES.map(function(m){
+    var hit=best>=m.d;
+    return '<span class="mchip'+(hit?" hit":"")+'">'+m.d+"d"+(hit?" ✓":"")+"</span>";
+  }).join("");
+
+  statsBody.innerHTML=
+    '<div class="statgrid">'+
+    '<div class="stat amber"><div class="v">'+cur+'</div><div class="l">Current streak</div></div>'+
+    '<div class="stat"><div class="v">'+best+'</div><div class="l">Best streak</div></div>'+
+    '<div class="stat"><div class="v">'+tot+'</div><div class="l">Total sessions</div></div>'+
+    "</div>"+
+    '<div class="card nextm">'+
+    (next?
+      '<p class="eyebrow amberev">Next milestone</p><h2>'+next.d+"-day streak</h2>"+
+      '<div class="bar"><i style="width:'+pct+'%"></i></div>'+
+      '<p class="small muted mono">'+cur+" / "+next.d+" days</p>":
+      '<p class="eyebrow amberev">Milestones</p><h2>You’ve cleared the board. Keep swimming.</h2>')+
+    "</div>"+
+    '<div class="card"><p class="eyebrow">Last 12 weeks</p><h2>The calendar of X’s</h2>'+
+    '<div class="heat">'+cells+"</div>"+
+    '<div class="legend"><span><i style="background:var(--accent)"></i>done</span>'+
+    '<span><i style="background:var(--miss)"></i>missed</span>'+
+    '<span><i style="border:1px dashed var(--line)"></i>ahead</span></div>'+
+    '<p class="small muted" style="margin-top:8px">Forgot to log? Tap any day from the past week to fix it.</p></div>'+
+    '<div class="card"><p class="eyebrow amberev">Milestones</p><h2>The road</h2>'+
+    '<div class="mlist">'+chips+"</div>"+
+    '<p class="small muted" style="margin-top:10px">Rebuilt a streak after a break? The milestones fire again — every climb counts.</p></div>';
+
+  statsBody.querySelectorAll("[data-day]").forEach(function(c){
+    c.addEventListener("click",function(){
+      var k=c.dataset.day;
+      if(done[k])delete done[k];else done[k]=true;
+      save("done",done);refreshAll();
+    });
+  });
+}
+
+function refreshAll(){renderToday();renderWeek();renderStats()}
+
+/* ---------------- celebration ---------------- */
+var celEl=el("#celebrate");
+function celebrate(m){
+  el("#celN").textContent=m.d;
+  el("#celL").textContent=m.d===1?"first day logged":"day streak";
+  el("#celQ").textContent=m.q;
+  celEl.classList.add("show");
+  confetti();
+}
+el("#celBtn").addEventListener("click",function(){
+  celEl.classList.remove("show");stopConfetti();
+});
+
+var cfxRun=false,cfxRaf=null;
+function stopConfetti(){cfxRun=false;if(cfxRaf)cancelAnimationFrame(cfxRaf);
+  var c=el("#cfx");c.getContext("2d").clearRect(0,0,c.width,c.height)}
+function confetti(){
+  if(window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  var c=el("#cfx"),ctx=c.getContext("2d");
+  var dpr=Math.min(window.devicePixelRatio||1,2);
+  c.width=innerWidth*dpr;c.height=innerHeight*dpr;ctx.scale(dpr,dpr);
+  var colors=["#0E7F8A","#43B7C2","#E8A64B","#D98A24","#F3F6F6"];
+  var ps=[];
+  function burst(x,y,dir){
+    for(var i=0;i<90;i++){
+      var a=(-Math.PI/2)+dir*(Math.random()*.7)+(Math.random()-.5)*.5;
+      var sp=7+Math.random()*8;
+      ps.push({x:x,y:y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,
+        rot:Math.random()*Math.PI,vr:(Math.random()-.5)*.3,
+        w:5+Math.random()*6,h:8+Math.random()*8,
+        col:colors[i%colors.length],life:150+Math.random()*80,round:Math.random()<.3});
+    }
+  }
+  burst(20,innerHeight*.9,1);
+  burst(innerWidth-20,innerHeight*.9,-1);
+  setTimeout(function(){if(cfxRun)burst(innerWidth/2,innerHeight*.85,Math.random()<.5?1:-1)},400);
+  cfxRun=true;
+  var t0=performance.now();
+  (function frame(t){
+    if(!cfxRun)return;
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    var alive=false;
+    ps.forEach(function(p){
+      if(p.life<=0)return;
+      alive=true;
+      p.vy+=0.16;p.vx*=0.99;p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;p.life--;
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);
+      ctx.globalAlpha=Math.min(1,p.life/50);
+      ctx.fillStyle=p.col;
+      if(p.round){ctx.beginPath();ctx.arc(0,0,p.w/2,0,7);ctx.fill()}
+      else ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+      ctx.restore();
+    });
+    if(alive&&t-t0<6000)cfxRaf=requestAnimationFrame(frame);
+    else stopConfetti();
+  })(t0);
+}
+
+/* ---------------- toast ---------------- */
+var toastT=null;
+function toast(msg){
+  var t=el("#toast");t.textContent=msg;t.classList.add("show");
+  clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove("show")},2600);
+}
+
+/* ---------------- midnight rollover ---------------- */
+document.addEventListener("visibilitychange",function(){
+  if(!document.hidden&&iso(new Date())!==renderedDate){renderedDate=iso(new Date());refreshAll()}
+});
+
+refreshAll();
+})();
+</script>

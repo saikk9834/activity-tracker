@@ -1,0 +1,103 @@
+import { supabase } from '@/lib/supabase';
+import type { ExerciseId, ISODate } from '@/types';
+import { EMPTY_DATA, type TrackerData, type TrackerRepository } from './types';
+
+function fail(context: string, error: { message: string } | null): void {
+  if (error) throw new Error(`${context}: ${error.message}`);
+}
+
+/**
+ * Reads and writes the signed-in user's rows. `user_id` is set explicitly on
+ * writes because row-level security checks it — the policies also make it
+ * impossible to write a row for anyone else, so this is belt and braces.
+ */
+export class SupabaseTrackerRepository implements TrackerRepository {
+  constructor(private readonly userId: string) {}
+
+  async load(): Promise<TrackerData> {
+    const [days, checks, settings] = await Promise.all([
+      supabase.from('logged_days').select('day').eq('user_id', this.userId),
+      supabase.from('day_checks').select('day, exercise_id').eq('user_id', this.userId),
+      supabase
+        .from('exercise_settings')
+        .select('exercise_id, weight, video_url')
+        .eq('user_id', this.userId),
+    ]);
+
+    fail('Loading logged days', days.error);
+    fail('Loading checklists', checks.error);
+    fail('Loading exercise settings', settings.error);
+
+    const data: TrackerData = { ...EMPTY_DATA, done: {}, checks: {}, weights: {}, links: {} };
+
+    for (const row of days.data ?? []) data.done[row.day] = true;
+
+    for (const row of checks.data ?? []) {
+      (data.checks[row.day] ??= []).push(row.exercise_id);
+    }
+
+    for (const row of settings.data ?? []) {
+      if (row.weight) data.weights[row.exercise_id] = row.weight;
+      if (row.video_url) data.links[row.exercise_id] = row.video_url;
+    }
+
+    return data;
+  }
+
+  async setDayDone(date: ISODate, done: boolean): Promise<void> {
+    if (done) {
+      const { error } = await supabase
+        .from('logged_days')
+        .upsert({ user_id: this.userId, day: date }, { onConflict: 'user_id,day' });
+      fail('Logging the day', error);
+    } else {
+      const { error } = await supabase
+        .from('logged_days')
+        .delete()
+        .eq('user_id', this.userId)
+        .eq('day', date);
+      fail('Un-logging the day', error);
+    }
+  }
+
+  async setChecks(date: ISODate, exerciseIds: ExerciseId[]): Promise<void> {
+    // Insert first, then remove what's no longer ticked. A failure between the
+    // two leaves an extra checkmark rather than silently losing one.
+    if (exerciseIds.length > 0) {
+      const { error } = await supabase.from('day_checks').upsert(
+        exerciseIds.map((exercise_id) => ({ user_id: this.userId, day: date, exercise_id })),
+        { onConflict: 'user_id,day,exercise_id' },
+      );
+      fail('Saving the checklist', error);
+    }
+
+    let query = supabase.from('day_checks').delete().eq('user_id', this.userId).eq('day', date);
+    if (exerciseIds.length > 0) {
+      const list = exerciseIds.map((id) => `"${id.replace(/"/g, '""')}"`).join(',');
+      query = query.not('exercise_id', 'in', `(${list})`);
+    }
+    const { error } = await query;
+    fail('Clearing unchecked items', error);
+  }
+
+  async setWeight(exerciseId: ExerciseId, weight: string): Promise<void> {
+    const { error } = await supabase.from('exercise_settings').upsert(
+      { user_id: this.userId, exercise_id: exerciseId, weight, updated_at: new Date().toISOString() },
+      { onConflict: 'user_id,exercise_id' },
+    );
+    fail('Saving the weight', error);
+  }
+
+  async setLink(exerciseId: ExerciseId, url: string | null): Promise<void> {
+    const { error } = await supabase.from('exercise_settings').upsert(
+      {
+        user_id: this.userId,
+        exercise_id: exerciseId,
+        video_url: url,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'user_id,exercise_id' },
+    );
+    fail('Saving the video link', error);
+  }
+}
