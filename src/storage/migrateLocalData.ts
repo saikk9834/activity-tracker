@@ -8,7 +8,8 @@ function isEmpty(data: TrackerData): boolean {
     Object.keys(data.done).length === 0 &&
     Object.keys(data.checks).length === 0 &&
     Object.keys(data.weights).length === 0 &&
-    Object.keys(data.links).length === 0
+    Object.keys(data.links).length === 0 &&
+    data.profile === null
   );
 }
 
@@ -44,6 +45,7 @@ export async function migrateLocalDataIfNeeded(
   for (const [exerciseId, url] of Object.entries(local.links)) {
     await target.setLink(exerciseId, url);
   }
+  if (local.profile) await target.saveProfile(local.profile);
 
   localStorage.setItem(flagKey(userId), new Date().toISOString());
   return moved;

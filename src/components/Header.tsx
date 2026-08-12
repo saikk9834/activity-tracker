@@ -1,15 +1,25 @@
 import { useState } from 'react';
 import { FlameIcon } from './icons';
 import { useAuth } from '@/state/useAuth';
+import { useTracker } from '@/state/useTracker';
 
-export function Header({ streak }: { streak: number }) {
+interface Props {
+  streak: number;
+  onOpenProfile: () => void;
+}
+
+export function Header({ streak, onOpenProfile }: Props) {
   const { session, signOut } = useAuth();
+  const { data } = useTracker();
   const [signingOut, setSigningOut] = useState(false);
 
   const onSignOut = () => {
     setSigningOut(true);
     void signOut().catch(() => setSigningOut(false));
   };
+
+  const name = data.profile?.name.trim();
+  const label = name || session?.user.email || '';
 
   return (
     <header className="app">
@@ -27,9 +37,14 @@ export function Header({ streak }: { streak: number }) {
       </p>
       {session && (
         <div className="acct">
-          <span className="acct-email" title={session.user.email ?? ''}>
-            {session.user.email}
-          </span>
+          <button
+            type="button"
+            className="linkbtn acct-email"
+            onClick={onOpenProfile}
+            title="Open your profile"
+          >
+            {label}
+          </button>
           <button type="button" className="linkbtn" onClick={onSignOut} disabled={signingOut}>
             {signingOut ? 'signing out…' : 'sign out'}
           </button>

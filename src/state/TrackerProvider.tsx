@@ -1,6 +1,6 @@
 import { createContext, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { createRepository, EMPTY_DATA, type TrackerData, type TrackerRepository } from '@/storage';
-import type { ExerciseId, ISODate } from '@/types';
+import type { ExerciseId, ISODate, Profile } from '@/types';
 
 export interface TrackerStore {
   data: TrackerData;
@@ -14,6 +14,8 @@ export interface TrackerStore {
   toggleCheck: (date: ISODate, exerciseId: ExerciseId) => ExerciseId[];
   setWeight: (exerciseId: ExerciseId, weight: string) => void;
   setLink: (exerciseId: ExerciseId, url: string | null) => void;
+  /** Rejects if the save fails, so the form can keep the user on the page. */
+  saveProfile: (profile: Profile) => Promise<void>;
 }
 
 export const TrackerContext = createContext<TrackerStore | null>(null);
@@ -120,6 +122,16 @@ export function TrackerProvider({ children, repository }: Props) {
     [repo, persist],
   );
 
+  // Not optimistic, unlike the rest: the profile form has an explicit save
+  // button, so it waits for the round trip and reports failure in place.
+  const saveProfile = useCallback(
+    async (profile: Profile) => {
+      await repo.saveProfile(profile);
+      setData((prev) => ({ ...prev, profile }));
+    },
+    [repo],
+  );
+
   const dismissError = useCallback(() => setError(null), []);
   const reload = useCallback(() => {
     setError(null);
@@ -138,6 +150,7 @@ export function TrackerProvider({ children, repository }: Props) {
       toggleCheck,
       setWeight,
       setLink,
+      saveProfile,
     }),
     [
       data,
@@ -150,6 +163,7 @@ export function TrackerProvider({ children, repository }: Props) {
       toggleCheck,
       setWeight,
       setLink,
+      saveProfile,
     ],
   );
 

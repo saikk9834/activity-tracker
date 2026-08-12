@@ -1,4 +1,4 @@
-import type { ExerciseId, ISODate } from '@/types';
+import type { ExerciseId, ISODate, Profile } from '@/types';
 
 /** Everything the app persists for one user. */
 export interface TrackerData {
@@ -10,9 +10,17 @@ export interface TrackerData {
   weights: Record<ExerciseId, string>;
   /** Form-check video links per exercise. */
   links: Record<ExerciseId, string>;
+  /** Body stats, or null when the user hasn't filled the profile in yet. */
+  profile: Profile | null;
 }
 
-export const EMPTY_DATA: TrackerData = { done: {}, checks: {}, weights: {}, links: {} };
+export const EMPTY_DATA: TrackerData = {
+  done: {},
+  checks: {},
+  weights: {},
+  links: {},
+  profile: null,
+};
 
 /**
  * The only way the UI touches persistence. Every method is async so that
@@ -26,4 +34,5 @@ export interface TrackerRepository {
   setWeight(exerciseId: ExerciseId, weight: string): Promise<void>;
   /** `null` removes the link. */
   setLink(exerciseId: ExerciseId, url: string | null): Promise<void>;
+  saveProfile(profile: Profile): Promise<void>;
 }

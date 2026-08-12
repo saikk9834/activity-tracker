@@ -1,4 +1,4 @@
-import type { ExerciseId, ISODate } from '@/types';
+import type { ExerciseId, ISODate, Profile } from '@/types';
 import { EMPTY_DATA, type TrackerData, type TrackerRepository } from './types';
 
 /** Same keys the original single-file version used, so existing data carries over. */
@@ -35,6 +35,7 @@ export class LocalTrackerRepository implements TrackerRepository {
       checks: read('checks', EMPTY_DATA.checks),
       weights: read('weights', EMPTY_DATA.weights),
       links: read('links', EMPTY_DATA.links),
+      profile: read('profile', EMPTY_DATA.profile),
     };
   }
 
@@ -62,5 +63,9 @@ export class LocalTrackerRepository implements TrackerRepository {
     if (url) map[exerciseId] = url;
     else delete map[exerciseId];
     write('links', map);
+  }
+
+  async saveProfile(profile: Profile): Promise<void> {
+    write('profile', profile);
   }
 }

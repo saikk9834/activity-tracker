@@ -1,15 +1,33 @@
+import { DEFAULT_PROFILE } from '@/data/profileDefaults';
+import { bodyNumbers, formatNumber } from '@/lib/body';
+import { useTracker } from '@/state/useTracker';
+
+/** Same derived targets as the Guide tab, so the two can't disagree. */
+const FALLBACK = bodyNumbers(DEFAULT_PROFILE)!;
+
 export function FoodView() {
+  const { data } = useTracker();
+  const numbers = (data.profile && bodyNumbers(data.profile)) ?? FALLBACK;
+  const weightKg = data.profile?.weightKg ?? DEFAULT_PROFILE.weightKg!;
+  const midCalories = Math.round((numbers.calorieLow + numbers.calorieHigh) / 2 / 50) * 50;
+
   return (
     <>
       <div className="card">
         <p className="eyebrow">The target</p>
-        <h2>130–150 g protein · ~2,250 kcal · every day</h2>
+        <h2>
+          {numbers.proteinLow}–{numbers.proteinHigh} g protein · ~{midCalories.toLocaleString()}{' '}
+          kcal · every day
+        </h2>
         <p className="small">
-          Muscle-building benefit plateaus around 1.6–1.8 g/kg — that’s 130–148 g at 82 kg.{' '}
-          <strong>130 g is the floor, 150 g is a great day.</strong> Vegetarian protein arrives with
-          carbs or fat attached, so the structure below matters more than heroics:{' '}
-          <strong>30–40 g protein per meal, four times a day</strong>, each meal anchored by a Tier
-          1 food.
+          Muscle-building benefit plateaus around 1.6–1.8 g/kg — that’s{' '}
+          {Math.round(1.6 * weightKg)}–{Math.round(1.8 * weightKg)} g at {formatNumber(weightKg)} kg.{' '}
+          <strong>
+            {numbers.proteinLow} g is the floor, {numbers.proteinHigh} g is a great day.
+          </strong>{' '}
+          Vegetarian protein arrives with carbs or fat attached, so the structure below matters more
+          than heroics: <strong>30–40 g protein per meal, four times a day</strong>, each meal
+          anchored by a Tier 1 food.
         </p>
       </div>
 

@@ -6,6 +6,7 @@ export const TABS: { id: TabId; label: string }[] = [
   { id: 'guide', label: 'Guide' },
   { id: 'food', label: 'Food' },
   { id: 'stats', label: 'Streak' },
+  { id: 'profile', label: 'Profile' },
 ];
 
 interface Props {

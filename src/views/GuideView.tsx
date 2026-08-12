@@ -1,4 +1,18 @@
-export function GuideView() {
+import { DEFAULT_PROFILE } from '@/data/profileDefaults';
+import { bodyNumbers, formatNumber } from '@/lib/body';
+import { useTracker } from '@/state/useTracker';
+import type { TabId } from '@/types';
+
+/** Falls back to the plan's original figures until a profile is saved. */
+const FALLBACK = bodyNumbers(DEFAULT_PROFILE)!;
+
+export function GuideView({ onOpenProfile }: { onOpenProfile: (tab: TabId) => void }) {
+  const { data } = useTracker();
+  const profile = data.profile;
+  const numbers = (profile && bodyNumbers(profile)) ?? FALLBACK;
+  const personalised = profile !== null && bodyNumbers(profile) !== null;
+  const heavy = numbers.bmi >= 25;
+
   return (
     <>
       <div className="card">
@@ -9,29 +23,48 @@ export function GuideView() {
             <tbody>
               <tr>
                 <td>BMI</td>
-                <td className="num">24.5</td>
-                <td className="muted small">82 kg at 183 cm — normal weight</td>
+                <td className="num">{formatNumber(numbers.bmi)}</td>
+                <td className="muted small">
+                  {profile?.weightKg && profile.heightCm && personalised
+                    ? `${formatNumber(profile.weightKg)} kg at ${formatNumber(profile.heightCm)} cm — ${numbers.bmiCategory}`
+                    : `${formatNumber(DEFAULT_PROFILE.weightKg!)} kg at ${formatNumber(DEFAULT_PROFILE.heightCm!)} cm — ${numbers.bmiCategory}`}
+                </td>
               </tr>
               <tr>
                 <td>Estimated TDEE</td>
-                <td className="num">~2,500 kcal</td>
+                <td className="num">~{numbers.tdee.toLocaleString()} kcal</td>
                 <td className="muted small">maintenance burn</td>
               </tr>
               <tr>
                 <td>Daily calorie target</td>
-                <td className="num">2,200–2,300 kcal</td>
+                <td className="num">
+                  {numbers.calorieLow.toLocaleString()}–{numbers.calorieHigh.toLocaleString()} kcal
+                </td>
                 <td className="muted small">mild deficit — the recomposition zone</td>
               </tr>
               <tr>
                 <td>Daily protein target</td>
-                <td className="num">130–150 g</td>
+                <td className="num">
+                  {numbers.proteinLow}–{numbers.proteinHigh} g
+                </td>
                 <td className="muted small">the non-negotiable number</td>
               </tr>
             </tbody>
           </table>
         </div>
+        {!personalised && (
+          <p className="small muted">
+            These are the plan's starting figures.{' '}
+            <button type="button" className="linkbtn" onClick={() => onOpenProfile('profile')}>
+              Fill in your profile
+            </button>{' '}
+            to make them yours.
+          </p>
+        )}
         <p className="small">
-          You’re not overweight — you’re under-muscled with fat stored at the belly. The goal is{' '}
+          {heavy
+            ? 'The goal is '
+            : 'You’re not overweight — you’re under-muscled with fat stored at the belly. The goal is '}
           <strong>recomposition</strong>: losing fat and building muscle at the same time, which
           beginners can absolutely do with a mild deficit and high protein. You cannot spot-reduce
           belly fat: it leaves when overall body fat drops, and it’s the last place to go. Expect

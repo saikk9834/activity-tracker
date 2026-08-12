@@ -15,13 +15,12 @@ npm install
 
 **1. Create a Supabase project** at [supabase.com](https://supabase.com).
 
-**2. Create the tables.** Open Dashboard → SQL Editor → New query, paste the contents of
-`supabase/migrations/0001_init.sql`, and run it. That creates three tables and turns on
-row-level security with an `auth.uid() = user_id` policy on each, so a signed-in user can
-only ever touch their own rows.
+**2. Create the tables.** Open Dashboard → SQL Editor → New query and run each file in
+`supabase/migrations/` in order (`0001_init.sql`, then `0002_profiles.sql`). Every table
+gets row-level security with an `auth.uid() = user_id` policy, so a signed-in user can only
+ever touch their own rows.
 
-**3. Add credentials.** Copy `.env.example` to `.env` and fill in the two values from
-Project Settings → API:
+**3. Add credentials.** Create a `.env` with the two values from Project Settings → API:
 
 ```
 VITE_SUPABASE_URL=https://your-project-ref.supabase.co
@@ -55,7 +54,7 @@ src/
   App.tsx                  tab shell for a signed-in user
   types.ts                 domain types (PlanDay, Exercise, Milestone, ISODate…)
   data/                    static content: the weekly PLAN, MILESTONES, toasts
-  lib/                     pure date + streak math; the Supabase client and DB types
+  lib/                     pure date, streak and body math; the Supabase client and DB types
   storage/                 persistence behind an interface  ← swap here, not in components
   state/                   AuthProvider, TrackerProvider (data), FeedbackProvider (toast/modal)
   hooks/                   useToday (midnight rollover), useCompleteDay
@@ -94,6 +93,23 @@ flag is written, so a failed run retries on the next sign-in.
 | `logged_days` | one row per completed day — the "X" |
 | `day_checks` | one row per exercise ticked on a given day |
 | `exercise_settings` | per-user working weight and form-check video per exercise |
+| `profiles` | name, age, gender, height, weight — one row per user |
+
+### Derived numbers
+
+The Guide and Food tabs don't hardcode targets; `src/lib/body.ts` computes them from the
+profile:
+
+- **BMI** — weight / height², with the standard category labels.
+- **TDEE** — Mifflin-St Jeor BMR × 1.375 (desk job plus this plan's sessions), rounded to
+  the nearest 50. Gender changes the formula's constant; "prefer not to say" splits the
+  difference between the male and female values.
+- **Calorie target** — TDEE minus 200–300.
+- **Protein target** — 1.6–1.8 g/kg, rounded out to the nearest 10 g.
+
+Until a profile is saved, both tabs fall back to `DEFAULT_PROFILE`
+(`src/data/profileDefaults.ts`), which reproduces the figures the plan was originally
+written around: 82 kg at 183 cm → BMI 24.5, ~2,500 kcal, 2,200–2,300 kcal, 130–150 g.
 
 Streak math lives in `src/lib/streak.ts` and has no dependencies, so it can run in an edge
 function too if you ever compute streaks server-side.

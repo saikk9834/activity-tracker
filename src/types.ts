@@ -32,4 +32,19 @@ export interface Milestone {
   quote: string;
 }
 
-export type TabId = 'today' | 'week' | 'guide' | 'food' | 'stats';
+export type TabId = 'today' | 'week' | 'guide' | 'food' | 'stats' | 'profile';
+
+export type Gender = 'male' | 'female' | 'other' | 'unspecified';
+
+/**
+ * Basic body stats. Every field except `gender` is nullable because a fresh
+ * account has nothing filled in yet — the Guide falls back to its defaults
+ * until height, weight and age are all present.
+ */
+export interface Profile {
+  name: string;
+  age: number | null;
+  gender: Gender;
+  heightCm: number | null;
+  weightKg: number | null;
+}

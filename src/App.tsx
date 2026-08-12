@@ -7,6 +7,7 @@ import { currentStreak } from '@/lib/streak';
 import { useTracker } from '@/state/useTracker';
 import { FoodView } from '@/views/FoodView';
 import { GuideView } from '@/views/GuideView';
+import { ProfileView } from '@/views/ProfileView';
 import { StatsView } from '@/views/StatsView';
 import { TodayView } from '@/views/TodayView';
 import { WeekView } from '@/views/WeekView';
@@ -29,7 +30,10 @@ export function App({ migrationError = null }: Props) {
 
   return (
     <div className="wrap">
-      <Header streak={currentStreak(data.done, today)} />
+      <Header
+        streak={currentStreak(data.done, today)}
+        onOpenProfile={() => onChangeTab('profile')}
+      />
       <Tabs active={tab} onChange={onChangeTab} />
 
       {error && (
@@ -62,9 +66,10 @@ export function App({ migrationError = null }: Props) {
             <>
               {tab === 'today' && <TodayView today={today} todayKey={todayKey} />}
               {tab === 'week' && <WeekView today={today} />}
-              {tab === 'guide' && <GuideView />}
+              {tab === 'guide' && <GuideView onOpenProfile={onChangeTab} />}
               {tab === 'food' && <FoodView />}
               {tab === 'stats' && <StatsView today={today} />}
+              {tab === 'profile' && <ProfileView />}
             </>
           )}
         </section>

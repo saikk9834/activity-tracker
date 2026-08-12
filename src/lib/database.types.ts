@@ -19,6 +19,36 @@ export interface Database {
         Update: { user_id?: string; day?: string; exercise_id?: string };
         Relationships: [];
       };
+      profiles: {
+        Row: {
+          user_id: string;
+          name: string;
+          age: number | null;
+          gender: string;
+          height_cm: number | null;
+          weight_kg: number | null;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          name?: string;
+          age?: number | null;
+          gender?: string;
+          height_cm?: number | null;
+          weight_kg?: number | null;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          name?: string;
+          age?: number | null;
+          gender?: string;
+          height_cm?: number | null;
+          weight_kg?: number | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       exercise_settings: {
         Row: {
           user_id: string;

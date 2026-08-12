@@ -1,9 +1,22 @@
 import { supabase } from '@/lib/supabase';
-import type { ExerciseId, ISODate } from '@/types';
+import type { ExerciseId, Gender, ISODate, Profile } from '@/types';
 import { EMPTY_DATA, type TrackerData, type TrackerRepository } from './types';
 
 function fail(context: string, error: { message: string } | null): void {
   if (error) throw new Error(`${context}: ${error.message}`);
+}
+
+const GENDERS: Gender[] = ['male', 'female', 'other', 'unspecified'];
+
+/** numeric columns come back as strings from PostgREST when they're wide. */
+function toNumber(value: number | string | null): number | null {
+  if (value === null || value === '') return null;
+  const n = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+function toGender(value: string): Gender {
+  return (GENDERS as string[]).includes(value) ? (value as Gender) : 'unspecified';
 }
 
 /**
@@ -15,20 +28,42 @@ export class SupabaseTrackerRepository implements TrackerRepository {
   constructor(private readonly userId: string) {}
 
   async load(): Promise<TrackerData> {
-    const [days, checks, settings] = await Promise.all([
+    const [days, checks, settings, profile] = await Promise.all([
       supabase.from('logged_days').select('day').eq('user_id', this.userId),
       supabase.from('day_checks').select('day, exercise_id').eq('user_id', this.userId),
       supabase
         .from('exercise_settings')
         .select('exercise_id, weight, video_url')
         .eq('user_id', this.userId),
+      // maybeSingle: a user with no profile row yet is expected, not an error.
+      supabase
+        .from('profiles')
+        .select('name, age, gender, height_cm, weight_kg')
+        .eq('user_id', this.userId)
+        .maybeSingle(),
     ]);
 
     fail('Loading logged days', days.error);
     fail('Loading checklists', checks.error);
     fail('Loading exercise settings', settings.error);
+    fail('Loading your profile', profile.error);
 
-    const data: TrackerData = { ...EMPTY_DATA, done: {}, checks: {}, weights: {}, links: {} };
+    const data: TrackerData = {
+      ...EMPTY_DATA,
+      done: {},
+      checks: {},
+      weights: {},
+      links: {},
+      profile: profile.data
+        ? {
+            name: profile.data.name ?? '',
+            age: toNumber(profile.data.age),
+            gender: toGender(profile.data.gender),
+            heightCm: toNumber(profile.data.height_cm),
+            weightKg: toNumber(profile.data.weight_kg),
+          }
+        : null,
+    };
 
     for (const row of days.data ?? []) data.done[row.day] = true;
 
@@ -99,5 +134,21 @@ export class SupabaseTrackerRepository implements TrackerRepository {
       { onConflict: 'user_id,exercise_id' },
     );
     fail('Saving the video link', error);
+  }
+
+  async saveProfile(profile: Profile): Promise<void> {
+    const { error } = await supabase.from('profiles').upsert(
+      {
+        user_id: this.userId,
+        name: profile.name,
+        age: profile.age,
+        gender: profile.gender,
+        height_cm: profile.heightCm,
+        weight_kg: profile.weightKg,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'user_id' },
+    );
+    fail('Saving your profile', error);
   }
 }
