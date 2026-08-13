@@ -6,6 +6,11 @@ export interface TrackerData {
   done: Record<ISODate, boolean>;
   /** Ticked exercises per day: `{ "2026-08-11": ["a1", "a2"] }` */
   checks: Record<ISODate, ExerciseId[]>;
+  /**
+   * Optional per-exercise comment on a given day — "lifted 25 instead of 20 kg".
+   * `{ "2026-08-11": { "a1": "only 8 reps" } }`. The coach reads these too.
+   */
+  notes: Record<ISODate, Record<ExerciseId, string>>;
   /** User's working weight, overriding the plan default: `{ "a1": "14 kg" }` */
   weights: Record<ExerciseId, string>;
   /** Form-check video links per exercise. */
@@ -14,9 +19,13 @@ export interface TrackerData {
   profile: Profile | null;
 }
 
+/** Matches the `char_length(note) <= 500` check on `day_notes`. */
+export const MAX_NOTE_LENGTH = 500;
+
 export const EMPTY_DATA: TrackerData = {
   done: {},
   checks: {},
+  notes: {},
   weights: {},
   links: {},
   profile: null,
@@ -31,6 +40,8 @@ export interface TrackerRepository {
   load(): Promise<TrackerData>;
   setDayDone(date: ISODate, done: boolean): Promise<void>;
   setChecks(date: ISODate, exerciseIds: ExerciseId[]): Promise<void>;
+  /** `null` removes the note. */
+  setNote(date: ISODate, exerciseId: ExerciseId, note: string | null): Promise<void>;
   setWeight(exerciseId: ExerciseId, weight: string): Promise<void>;
   /** `null` removes the link. */
   setLink(exerciseId: ExerciseId, url: string | null): Promise<void>;

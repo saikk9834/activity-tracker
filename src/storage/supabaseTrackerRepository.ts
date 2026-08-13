@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import type { ExerciseId, Gender, ISODate, Profile } from '@/types';
-import { EMPTY_DATA, type TrackerData, type TrackerRepository } from './types';
+import { EMPTY_DATA, MAX_NOTE_LENGTH, type TrackerData, type TrackerRepository } from './types';
 
 function fail(context: string, error: { message: string } | null): void {
   if (error) throw new Error(`${context}: ${error.message}`);
@@ -28,9 +28,10 @@ export class SupabaseTrackerRepository implements TrackerRepository {
   constructor(private readonly userId: string) {}
 
   async load(): Promise<TrackerData> {
-    const [days, checks, settings, profile] = await Promise.all([
+    const [days, checks, notes, settings, profile] = await Promise.all([
       supabase.from('logged_days').select('day').eq('user_id', this.userId),
       supabase.from('day_checks').select('day, exercise_id').eq('user_id', this.userId),
+      supabase.from('day_notes').select('day, exercise_id, note').eq('user_id', this.userId),
       supabase
         .from('exercise_settings')
         .select('exercise_id, weight, video_url')
@@ -45,6 +46,7 @@ export class SupabaseTrackerRepository implements TrackerRepository {
 
     fail('Loading logged days', days.error);
     fail('Loading checklists', checks.error);
+    fail('Loading your comments', notes.error);
     fail('Loading exercise settings', settings.error);
     fail('Loading your profile', profile.error);
 
@@ -52,6 +54,7 @@ export class SupabaseTrackerRepository implements TrackerRepository {
       ...EMPTY_DATA,
       done: {},
       checks: {},
+      notes: {},
       weights: {},
       links: {},
       profile: profile.data
@@ -69,6 +72,10 @@ export class SupabaseTrackerRepository implements TrackerRepository {
 
     for (const row of checks.data ?? []) {
       (data.checks[row.day] ??= []).push(row.exercise_id);
+    }
+
+    for (const row of notes.data ?? []) {
+      (data.notes[row.day] ??= {})[row.exercise_id] = row.note;
     }
 
     for (const row of settings.data ?? []) {
@@ -113,6 +120,30 @@ export class SupabaseTrackerRepository implements TrackerRepository {
     }
     const { error } = await query;
     fail('Clearing unchecked items', error);
+  }
+
+  async setNote(date: ISODate, exerciseId: ExerciseId, note: string | null): Promise<void> {
+    if (note) {
+      const { error } = await supabase.from('day_notes').upsert(
+        {
+          user_id: this.userId,
+          day: date,
+          exercise_id: exerciseId,
+          note: note.slice(0, MAX_NOTE_LENGTH),
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'user_id,day,exercise_id' },
+      );
+      fail('Saving your comment', error);
+    } else {
+      const { error } = await supabase
+        .from('day_notes')
+        .delete()
+        .eq('user_id', this.userId)
+        .eq('day', date)
+        .eq('exercise_id', exerciseId);
+      fail('Removing your comment', error);
+    }
   }
 
   async setWeight(exerciseId: ExerciseId, weight: string): Promise<void> {

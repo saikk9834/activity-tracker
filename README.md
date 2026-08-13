@@ -16,7 +16,8 @@ npm install
 **1. Create a Supabase project** at [supabase.com](https://supabase.com).
 
 **2. Create the tables.** Open Dashboard → SQL Editor → New query and run each file in
-`supabase/migrations/` in order (`0001_init.sql`, then `0002_profiles.sql`). Every table
+`supabase/migrations/` in order (`0001_init.sql`, `0002_profiles.sql`, then
+`0003_day_notes.sql`). Every table
 gets row-level security with an `auth.uid() = user_id` policy, so a signed-in user can only
 ever touch their own rows.
 
@@ -52,6 +53,10 @@ session, streak and attendance patterns, whether to add weight, how to scale a
 session. It runs on Claude (`claude-opus-5`) through a Vercel Function at
 `/api/chat`.
 
+It sees the last 28 days of attendance *and* the per-exercise comments from that
+window, which is what makes progression advice specific: "lifted 25 instead of
+20 kg" is the signal a bare checkmark can't carry.
+
 **The Anthropic API key never reaches the browser.** Vite inlines every `VITE_*`
 variable into the client bundle, so a key there would be public — which is
 exactly why the key must *not* carry that prefix. As a plain Vercel environment
@@ -63,7 +68,7 @@ the service-role key is deliberately unused), and calls Claude server-side.
 ```
 browser ──access token──▶ /api/chat (Vercel) ──ANTHROPIC_API_KEY──▶ Claude
                                 │
-                                └── reads logged_days / day_checks /
+                                └── reads logged_days / day_checks / day_notes /
                                     exercise_settings / profiles under RLS
 ```
 
@@ -138,7 +143,7 @@ src/
   storage/                 persistence behind an interface  ← swap here, not in components
   state/                   AuthProvider, TrackerProvider (data), FeedbackProvider (toast/modal)
   hooks/                   useToday (midnight rollover), useCompleteDay
-  components/              Header, Tabs, WeightChip, VideoLinkRow, AuthScreen, …
+  components/              Header, Tabs, WeightChip, VideoLinkRow, ExerciseNote, AuthScreen, …
   views/                   one file per tab — Today, Week, Coach, Guide, Food, Stats, Profile
   styles.css               the original stylesheet plus auth/account/chat styles
 supabase/migrations/       SQL to run in the dashboard
@@ -173,6 +178,7 @@ flag is written, so a failed run retries on the next sign-in.
 |---|---|
 | `logged_days` | one row per completed day — the "X" |
 | `day_checks` | one row per exercise ticked on a given day |
+| `day_notes` | the user's optional comment on one exercise on one day |
 | `exercise_settings` | per-user working weight and form-check video per exercise |
 | `profiles` | name, age, gender, height, weight — one row per user |
 

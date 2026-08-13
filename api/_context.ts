@@ -15,6 +15,11 @@ import type { DoneMap } from '../src/lib/streak';
 
 const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
+/** How far back the attendance history and the session comments both reach. */
+const HISTORY_DAYS = 28;
+/** Hard ceiling on comments pulled into the prompt, newest window first. */
+const MAX_NOTES = 120;
+
 /**
  * Server-side Supabase config. Vercel already has the `VITE_`-prefixed values
  * for the client build, so those are the fallback — only ANTHROPIC_API_KEY has
@@ -66,20 +71,31 @@ export async function buildUserContext(
   supabase: SupabaseClient,
   todayKey: string,
 ): Promise<string> {
-  const [days, checks, settings, profile] = await Promise.all([
+  const today = new Date(todayKey + 'T12:00:00');
+  const historyStart = iso(addDays(today, -(HISTORY_DAYS - 1)));
+
+  const [days, checks, notes, settings, profile] = await Promise.all([
     supabase.from('logged_days').select('day'),
     supabase.from('day_checks').select('day, exercise_id'),
+    // Same window as the attendance history below — enough for the coach to
+    // spot a trend without dragging a year of comments into every prompt.
+    supabase
+      .from('day_notes')
+      .select('day, exercise_id, note')
+      .gte('day', historyStart)
+      .lte('day', todayKey)
+      .order('day', { ascending: true })
+      .limit(MAX_NOTES),
     supabase.from('exercise_settings').select('exercise_id, weight'),
     supabase.from('profiles').select('name, age, gender, height_cm, weight_kg').maybeSingle(),
   ]);
 
-  const failure = days.error ?? checks.error ?? settings.error ?? profile.error;
+  const failure = days.error ?? checks.error ?? notes.error ?? settings.error ?? profile.error;
   if (failure) throw new Error(failure.message);
 
   const done: DoneMap = {};
   for (const row of (days.data ?? []) as { day: string }[]) done[row.day] = true;
 
-  const today = new Date(todayKey + 'T12:00:00');
   const lines: string[] = [];
 
   // ---- profile ----
@@ -112,13 +128,13 @@ export async function buildUserContext(
 
   // ---- recent history ----
   const recent: string[] = [];
-  for (let i = 27; i >= 0; i--) {
+  for (let i = HISTORY_DAYS - 1; i >= 0; i--) {
     const d = addDays(today, -i);
     recent.push(
       `${iso(d)} ${DAY_NAMES[planIndex(d)]!.slice(0, 3)} ${done[iso(d)] ? 'done' : 'missed'}`,
     );
   }
-  lines.push(`Last 28 days (oldest first):\n${recent.join('\n')}`);
+  lines.push(`Last ${HISTORY_DAYS} days (oldest first):\n${recent.join('\n')}`);
 
   // ---- weekday reliability over the last 12 weeks ----
   const byWeekday = DAY_NAMES.map(() => ({ done: 0, total: 0 }));
@@ -145,6 +161,32 @@ export async function buildUserContext(
       ? `Exercises ticked off today: ${ticked.map(nameFor).join(', ')}.`
       : 'No exercises ticked off today yet.',
   );
+
+  // ---- session comments ----
+  // What the user typed about how a given exercise actually went. Free text, so
+  // it's fenced off and the system prompt tells the model to treat it as data.
+  const noteRows = (notes.data ?? []) as { day: string; exercise_id: string; note: string }[];
+  if (noteRows.length) {
+    const byDay = new Map<string, string[]>();
+    for (const row of noteRows) {
+      const text = row.note.replace(/\s+/g, ' ').trim().slice(0, 300);
+      if (!text) continue;
+      const bucket = byDay.get(row.day) ?? [];
+      bucket.push(`${nameFor(row.exercise_id)}: ${text}`);
+      byDay.set(row.day, bucket);
+    }
+    const rendered = [...byDay.entries()].map(
+      ([day, items]) =>
+        `${day}${day === todayKey ? ' (today)' : ''} — ${items.join(' | ')}`,
+    );
+    lines.push(
+      `The user's own comments on individual exercises, last ${HISTORY_DAYS} days (oldest first).`,
+      `These say how a set actually went — a different weight, fewer reps, how it felt — and override the plan defaults and the saved working weight for that day:`,
+      rendered.join('\n'),
+    );
+  } else {
+    lines.push(`No per-exercise comments logged in the last ${HISTORY_DAYS} days.`);
+  }
 
   // ---- working weights ----
   const weights = ((settings.data ?? []) as { exercise_id: string; weight: string | null }[])

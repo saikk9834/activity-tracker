@@ -1,3 +1,4 @@
+import { ExerciseNote } from '@/components/ExerciseNote';
 import { CheckIcon } from '@/components/icons';
 import { VideoLinkRow } from '@/components/VideoLinkRow';
 import { WeightChip } from '@/components/WeightChip';
@@ -64,6 +65,7 @@ export function TodayView({ today, todayKey }: Props) {
                   <br />
                   <span className="d">{item.detail}</span>
                   <VideoLinkRow exerciseId={item.id} />
+                  <ExerciseNote date={todayKey} exerciseId={item.id} />
                 </span>
                 <WeightChip exercise={item} />
               </label>

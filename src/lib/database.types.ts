@@ -1,5 +1,5 @@
 /**
- * Hand-written to match supabase/migrations/0001_init.sql.
+ * Hand-written to match the files in supabase/migrations/.
  *
  * Once the project exists you can regenerate this instead of maintaining it:
  *   npx supabase gen types typescript --project-id <ref> > src/lib/database.types.ts
@@ -17,6 +17,30 @@ export interface Database {
         Row: { user_id: string; day: string; exercise_id: string };
         Insert: { user_id: string; day: string; exercise_id: string };
         Update: { user_id?: string; day?: string; exercise_id?: string };
+        Relationships: [];
+      };
+      day_notes: {
+        Row: {
+          user_id: string;
+          day: string;
+          exercise_id: string;
+          note: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          day: string;
+          exercise_id: string;
+          note: string;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          day?: string;
+          exercise_id?: string;
+          note?: string;
+          updated_at?: string;
+        };
         Relationships: [];
       };
       profiles: {

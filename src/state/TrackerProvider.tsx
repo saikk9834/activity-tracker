@@ -1,5 +1,11 @@
 import { createContext, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { createRepository, EMPTY_DATA, type TrackerData, type TrackerRepository } from '@/storage';
+import {
+  createRepository,
+  EMPTY_DATA,
+  MAX_NOTE_LENGTH,
+  type TrackerData,
+  type TrackerRepository,
+} from '@/storage';
 import type { ExerciseId, ISODate, Profile } from '@/types';
 
 export interface TrackerStore {
@@ -12,6 +18,8 @@ export interface TrackerStore {
   setDayDone: (date: ISODate, done: boolean) => void;
   toggleDay: (date: ISODate) => void;
   toggleCheck: (date: ISODate, exerciseId: ExerciseId) => ExerciseId[];
+  /** Empty string clears the comment. */
+  setNote: (date: ISODate, exerciseId: ExerciseId, note: string) => void;
   setWeight: (exerciseId: ExerciseId, weight: string) => void;
   setLink: (exerciseId: ExerciseId, url: string | null) => void;
   /** Rejects if the save fails, so the form can keep the user on the page. */
@@ -101,6 +109,23 @@ export function TrackerProvider({ children, repository }: Props) {
     [data.checks, repo, persist],
   );
 
+  const setNote = useCallback(
+    (date: ISODate, exerciseId: ExerciseId, note: string) => {
+      const trimmed = note.trim().slice(0, MAX_NOTE_LENGTH);
+      setData((prev) => {
+        const forDay = { ...prev.notes[date] };
+        if (trimmed) forDay[exerciseId] = trimmed;
+        else delete forDay[exerciseId];
+        const notes = { ...prev.notes };
+        if (Object.keys(forDay).length) notes[date] = forDay;
+        else delete notes[date];
+        return { ...prev, notes };
+      });
+      persist(repo.setNote(date, exerciseId, trimmed || null));
+    },
+    [repo, persist],
+  );
+
   const setWeight = useCallback(
     (exerciseId: ExerciseId, weight: string) => {
       setData((prev) => ({ ...prev, weights: { ...prev.weights, [exerciseId]: weight } }));
@@ -148,6 +173,7 @@ export function TrackerProvider({ children, repository }: Props) {
       setDayDone,
       toggleDay,
       toggleCheck,
+      setNote,
       setWeight,
       setLink,
       saveProfile,
@@ -161,6 +187,7 @@ export function TrackerProvider({ children, repository }: Props) {
       setDayDone,
       toggleDay,
       toggleCheck,
+      setNote,
       setWeight,
       setLink,
       saveProfile,

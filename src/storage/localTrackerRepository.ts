@@ -33,6 +33,7 @@ export class LocalTrackerRepository implements TrackerRepository {
     return {
       done: read('done', EMPTY_DATA.done),
       checks: read('checks', EMPTY_DATA.checks),
+      notes: read('notes', EMPTY_DATA.notes),
       weights: read('weights', EMPTY_DATA.weights),
       links: read('links', EMPTY_DATA.links),
       profile: read('profile', EMPTY_DATA.profile),
@@ -50,6 +51,16 @@ export class LocalTrackerRepository implements TrackerRepository {
     const map = read('checks', { ...EMPTY_DATA.checks });
     map[date] = exerciseIds;
     write('checks', map);
+  }
+
+  async setNote(date: ISODate, exerciseId: ExerciseId, note: string | null): Promise<void> {
+    const map = read('notes', { ...EMPTY_DATA.notes });
+    const forDay = { ...map[date] };
+    if (note) forDay[exerciseId] = note;
+    else delete forDay[exerciseId];
+    if (Object.keys(forDay).length) map[date] = forDay;
+    else delete map[date];
+    write('notes', map);
   }
 
   async setWeight(exerciseId: ExerciseId, weight: string): Promise<void> {

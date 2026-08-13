@@ -120,6 +120,13 @@ tr:last-child td{border-bottom:none}
 .vedit:focus-visible,.vlink:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
 .vinput{font:inherit;font-size:.8rem;color:var(--ink);background:var(--card);
   border:1px solid var(--accent);border-radius:6px;padding:4px 8px;width:min(100%,300px)}
+.noterow{margin-top:4px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.ntext{font-size:.8rem;color:var(--ink);border-left:2px solid var(--accent);padding-left:8px;
+  max-width:52ch;white-space:pre-wrap;overflow-wrap:anywhere}
+.checkrow input:checked ~ .ex .ntext{color:var(--muted)}
+.ninput{font:inherit;font-size:.8rem;line-height:1.45;color:var(--ink);background:var(--card);
+  border:1px solid var(--accent);border-radius:6px;padding:6px 8px;width:min(100%,380px);
+  resize:vertical}
 .plan-note{font-size:.82rem;color:var(--muted);border-left:2px solid var(--line);
   padding-left:10px;margin:12px 0 0;max-width:58ch}
 .prog-note{font-size:.82rem;color:var(--accent-ink);background:var(--accent-soft);

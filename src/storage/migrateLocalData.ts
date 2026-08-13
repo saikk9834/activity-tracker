@@ -7,6 +7,7 @@ function isEmpty(data: TrackerData): boolean {
   return (
     Object.keys(data.done).length === 0 &&
     Object.keys(data.checks).length === 0 &&
+    Object.keys(data.notes).length === 0 &&
     Object.keys(data.weights).length === 0 &&
     Object.keys(data.links).length === 0 &&
     data.profile === null
@@ -38,6 +39,11 @@ export async function migrateLocalDataIfNeeded(
   }
   for (const [day, ids] of Object.entries(local.checks)) {
     if (ids.length) await target.setChecks(day, ids);
+  }
+  for (const [day, forDay] of Object.entries(local.notes)) {
+    for (const [exerciseId, note] of Object.entries(forDay)) {
+      if (note) await target.setNote(day, exerciseId, note);
+    }
   }
   for (const [exerciseId, weight] of Object.entries(local.weights)) {
     await target.setWeight(exerciseId, weight);
