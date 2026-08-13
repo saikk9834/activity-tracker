@@ -45,6 +45,86 @@ npm run preview    # serve the built bundle
 Without `.env`, the app shows setup instructions instead of a blank screen. Vite only reads
 env files at startup, so restart the dev server after editing `.env`.
 
+## The coach (AI chat)
+
+The **Coach** tab answers questions about the user's own training — today's
+session, streak and attendance patterns, whether to add weight, how to scale a
+session. It runs on Claude (`claude-opus-5`) through a Vercel Function at
+`/api/chat`.
+
+**The Anthropic API key never reaches the browser.** Vite inlines every `VITE_*`
+variable into the client bundle, so a key there would be public — which is
+exactly why the key must *not* carry that prefix. As a plain Vercel environment
+variable it is only readable server-side. The browser posts to `/api/chat` with
+the user's Supabase access token; the function holds the key, reads that user's
+rows with the same token (so row-level security still decides what's visible —
+the service-role key is deliberately unused), and calls Claude server-side.
+
+```
+browser ──access token──▶ /api/chat (Vercel) ──ANTHROPIC_API_KEY──▶ Claude
+                                │
+                                └── reads logged_days / day_checks /
+                                    exercise_settings / profiles under RLS
+```
+
+### Setup
+
+Add one environment variable in **Vercel → Project → Settings → Environment
+Variables**, then redeploy:
+
+```
+ANTHROPIC_API_KEY = sk-ant-...        # from console.anthropic.com
+```
+
+**No `VITE_` prefix** — that prefix is what would publish it to the browser.
+
+The function also needs the Supabase URL and anon key. It falls back to the
+`VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` you already have set for the
+client build, so there is normally nothing else to add. To keep the server's
+config separate, set `SUPABASE_URL` and `SUPABASE_ANON_KEY` as well — they take
+precedence.
+
+**Local development:** `npm run dev` serves the app but not `/api`, so the Coach
+tab will report that it can't reach the coach. Run `vercel dev` instead (needs
+the Vercel CLI) to serve both on one origin.
+
+### How it's put together
+
+| Piece | What it does |
+|---|---|
+| `api/chat.ts` | Auth gate, request validation, the Claude call, error mapping |
+| `api/_context.ts` | Turns the user's rows into the data half of the system prompt |
+| `src/lib/coach.ts` | Client-side caller (`fetch('/api/chat')`) |
+| `src/views/CoachView.tsx` | The chat UI |
+
+Files under `api/` prefixed with `_` are modules, not routes — Vercel doesn't
+expose them as endpoints. The handler uses the Web `Request`/`Response`
+signature, so it needs no Vercel-specific types.
+
+The function imports `src/data/plan.ts` and `src/lib/streak.ts` directly, so the
+coach's view of the plan and the streak math are the *same code* the UI uses and
+can't drift.
+
+The system prompt is two blocks: stable instructions plus the plan (with a
+`cache_control` breakpoint, so repeat questions in a session read from cache
+instead of re-billing ~5.7K tokens), then the user's current data. Requests use
+`effort: "medium"` — the dataset is small and the questions are everyday ones —
+and `fallbacks: "default"`, so a request Claude's safety classifiers decline gets
+re-run on Anthropic's recommended fallback model instead of erroring.
+
+Conversation history lives in React state only, so it resets on reload.
+
+### Natural next steps
+
+- **Streaming** — replies currently arrive all at once behind a typing
+  indicator. Streaming the SSE through the function is the biggest UX win.
+- **Tools instead of a data dump** — right now every request ships a fixed
+  context block. Giving Claude tools (`get_history(range)`, `get_weights()`)
+  would let it pull only what a question needs and reach further back.
+- **Persisted conversations** — a `chat_messages` table keyed by `user_id`,
+  same RLS pattern as everything else.
+- **A spend cap** — nothing currently limits how many questions a user can ask.
+
 ## Layout
 
 ```
@@ -59,9 +139,10 @@ src/
   state/                   AuthProvider, TrackerProvider (data), FeedbackProvider (toast/modal)
   hooks/                   useToday (midnight rollover), useCompleteDay
   components/              Header, Tabs, WeightChip, VideoLinkRow, AuthScreen, …
-  views/                   one file per tab — Today, Week, Guide, Food, Stats
-  styles.css               the original stylesheet plus auth/account styles
+  views/                   one file per tab — Today, Week, Coach, Guide, Food, Stats, Profile
+  styles.css               the original stylesheet plus auth/account/chat styles
 supabase/migrations/       SQL to run in the dashboard
+api/                       Vercel Functions — the AI coach's server side
 ```
 
 Import with the `@/` alias (`@/lib/streak`), configured in `vite.config.ts` and

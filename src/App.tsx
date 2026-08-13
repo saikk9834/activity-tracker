@@ -5,6 +5,7 @@ import { Tabs } from '@/components/Tabs';
 import { useToday } from '@/hooks/useToday';
 import { currentStreak } from '@/lib/streak';
 import { useTracker } from '@/state/useTracker';
+import { CoachView } from '@/views/CoachView';
 import { FoodView } from '@/views/FoodView';
 import { GuideView } from '@/views/GuideView';
 import { ProfileView } from '@/views/ProfileView';
@@ -66,6 +67,7 @@ export function App({ migrationError = null }: Props) {
             <>
               {tab === 'today' && <TodayView today={today} todayKey={todayKey} />}
               {tab === 'week' && <WeekView today={today} />}
+              {tab === 'coach' && <CoachView todayKey={todayKey} />}
               {tab === 'guide' && <GuideView onOpenProfile={onChangeTab} />}
               {tab === 'food' && <FoodView />}
               {tab === 'stats' && <StatsView today={today} />}

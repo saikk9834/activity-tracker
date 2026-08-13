@@ -3,6 +3,7 @@ import type { TabId } from '@/types';
 export const TABS: { id: TabId; label: string }[] = [
   { id: 'today', label: 'Today' },
   { id: 'week', label: 'Week' },
+  { id: 'coach', label: 'Coach' },
   { id: 'guide', label: 'Guide' },
   { id: 'food', label: 'Food' },
   { id: 'stats', label: 'Streak' },
