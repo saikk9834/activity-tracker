@@ -1,8 +1,9 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import { PLAN } from '../src/data/plan';
-import { addDays, iso, planIndex } from '../src/lib/date';
-import { bestStreak, currentStreak, totalSessions } from '../src/lib/streak';
-import type { DoneMap } from '../src/lib/streak';
+// `.js` extensions are required — see the note in chat.ts.
+import { PLAN } from '../src/data/plan.js';
+import { addDays, iso, planIndex } from '../src/lib/date.js';
+import { bestStreak, currentStreak, totalSessions } from '../src/lib/streak.js';
+import type { DoneMap } from '../src/lib/streak.js';
 
 /**
  * Files prefixed with `_` are not routed as endpoints by Vercel, so this is a

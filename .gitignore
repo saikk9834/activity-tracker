@@ -6,3 +6,5 @@ dist-ssr
 .env
 .idea/workspace.xml
 supabase
+.vercel
+.env*

@@ -1,5 +1,7 @@
 import type { ISODate } from '@/types';
-import { addDays, daysBetween, fromIso, iso } from './date';
+// `.js` extension: this module is also imported by the Vercel Function, which
+// runs as native ESM. Vite resolves it to date.ts for the browser build.
+import { addDays, daysBetween, fromIso, iso } from './date.js';
 
 export type DoneMap = Record<ISODate, boolean>;
 

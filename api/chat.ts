@@ -1,5 +1,9 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { buildUserContext, clientForToken, planSchedule, supabaseConfig } from './_context';
+// Relative imports carry `.js` extensions on purpose: package.json sets
+// "type": "module", so Vercel runs these as native ESM, and Node's ESM resolver
+// does not guess extensions. Extensionless works under Vite/tsx and then fails
+// at boot in production with ERR_MODULE_NOT_FOUND.
+import { buildUserContext, clientForToken, planSchedule, supabaseConfig } from './_context.js';
 
 /**
  * POST /api/chat — the AI coach.
