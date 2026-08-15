@@ -1,20 +1,20 @@
+import { useState } from 'react';
+import { DayEditor } from '@/components/DayEditor';
 import { MILESTONES, nextMilestoneAfter } from '@/data/milestones';
-import { addDays, daysBetween, formatShortDate, iso, planIndex } from '@/lib/date';
+import { addDays, formatShortDate, iso, planIndex } from '@/lib/date';
 import { bestStreak, currentStreak, totalSessions } from '@/lib/streak';
 import { useTracker } from '@/state/useTracker';
 import type { ISODate } from '@/types';
 
 const WEEKS = 12;
-/** How far back a day stays tappable for retroactive logging. */
-const EDITABLE_DAYS = 7;
 
 interface Cell {
   key: ISODate;
   label: string;
   done: boolean;
+  /** Future days are the only ones that can't be opened — `future` gates editing. */
   future: boolean;
   isToday: boolean;
-  editable: boolean;
 }
 
 function buildCells(today: Date, done: Record<ISODate, boolean>): Cell[] {
@@ -36,7 +36,6 @@ function buildCells(today: Date, done: Record<ISODate, boolean>): Cell[] {
         done: isDone,
         future,
         isToday,
-        editable: !future && daysBetween(d, today) < EDITABLE_DAYS,
       });
     }
   }
@@ -44,7 +43,9 @@ function buildCells(today: Date, done: Record<ISODate, boolean>): Cell[] {
 }
 
 export function StatsView({ today }: { today: Date }) {
-  const { data, toggleDay } = useTracker();
+  const { data } = useTracker();
+  /** The day whose editor is open, or `null` when the calendar is idle. */
+  const [editing, setEditing] = useState<ISODate | null>(null);
 
   const current = currentStreak(data.done, today);
   const best = bestStreak(data.done);
@@ -99,18 +100,18 @@ export function StatsView({ today }: { today: Date }) {
               'cell' +
               (cell.done ? ' on' : cell.future ? ' future' : '') +
               (cell.isToday ? ' today' : '') +
-              (cell.editable ? ' tappable' : '');
-            return cell.editable ? (
+              (cell.future ? '' : ' tappable');
+            return cell.future ? (
+              <span key={cell.key} className={className} title={cell.label} />
+            ) : (
               <button
                 key={cell.key}
                 type="button"
                 className={className}
                 title={cell.label}
                 aria-label={cell.label}
-                onClick={() => toggleDay(cell.key)}
+                onClick={() => setEditing(cell.key)}
               />
-            ) : (
-              <span key={cell.key} className={className} title={cell.label} />
             );
           })}
         </div>
@@ -129,7 +130,8 @@ export function StatsView({ today }: { today: Date }) {
           </span>
         </div>
         <p className="small muted" style={{ marginTop: 8 }}>
-          Forgot to log? Tap any day from the past week to fix it.
+          Forgot to log? Tap any past day to open it — tick the exercises you did and add a comment
+          on how they went.
         </p>
       </div>
 
@@ -147,6 +149,8 @@ export function StatsView({ today }: { today: Date }) {
           Rebuilt a streak after a break? The milestones fire again — every climb counts.
         </p>
       </div>
+
+      {editing && <DayEditor date={editing} onClose={() => setEditing(null)} />}
     </>
   );
 }

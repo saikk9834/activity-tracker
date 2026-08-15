@@ -49,6 +49,9 @@ export function ExerciseNote({ date, exerciseId }: Props) {
               e.currentTarget.blur();
             }
             if (e.key === 'Escape') {
+              // Inside the day editor, Escape must cancel this edit rather than
+              // bubble up and close the whole sheet.
+              e.stopPropagation();
               e.currentTarget.value = note;
               e.currentTarget.blur();
             }

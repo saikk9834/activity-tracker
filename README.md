@@ -143,7 +143,7 @@ src/
   storage/                 persistence behind an interface  ← swap here, not in components
   state/                   AuthProvider, TrackerProvider (data), FeedbackProvider (toast/modal)
   hooks/                   useToday (midnight rollover), useCompleteDay
-  components/              Header, Tabs, WeightChip, VideoLinkRow, ExerciseNote, AuthScreen, …
+  components/              Header, Tabs, WeightChip, VideoLinkRow, ExerciseNote, DayEditor, AuthScreen, …
   views/                   one file per tab — Today, Week, Coach, Guide, Food, Stats, Profile
   styles.css               the original stylesheet plus auth/account/chat styles
 supabase/migrations/       SQL to run in the dashboard
