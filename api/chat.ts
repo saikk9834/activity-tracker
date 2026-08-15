@@ -119,9 +119,14 @@ function parseTurns(raw: unknown): Turn[] | null {
   return trimmed;
 }
 
-export default async function handler(request: Request): Promise<Response> {
-  if (request.method !== 'POST') return json({ error: 'Use POST.' }, 405);
-
+/**
+ * Exported as `POST`, not as a default export. Vercel's Node runtime calls a
+ * default export with Node's `(req, res)` objects, where `req.headers` is a
+ * plain object — so `request.headers.get(...)` throws. A function named after
+ * an HTTP method opts into the Web handler signature used below, and Vercel
+ * answers other methods with 405 on its own.
+ */
+export async function POST(request: Request): Promise<Response> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return json({ error: 'The coach is not configured: ANTHROPIC_API_KEY is unset.' }, 500);
