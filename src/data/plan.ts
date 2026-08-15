@@ -1,4 +1,6 @@
-import type { PlanDay } from '@/types';
+// Relative, not the `@/` alias: this module is pulled into the Vercel Function,
+// whose TypeScript build doesn't apply the app's path mapping.
+import type { PlanDay } from '../types.js';
 
 /**
  * The weekly template, indexed Monday..Sunday. It repeats for all 12 weeks.

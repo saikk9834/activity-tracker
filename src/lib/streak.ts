@@ -1,4 +1,5 @@
-import type { ISODate } from '@/types';
+// Relative, not the `@/` alias — see the note in src/data/plan.ts.
+import type { ISODate } from '../types.js';
 // `.js` extension: this module is also imported by the Vercel Function, which
 // runs as native ESM. Vite resolves it to date.ts for the browser build.
 import { addDays, daysBetween, fromIso, iso } from './date.js';

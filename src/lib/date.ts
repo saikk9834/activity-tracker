@@ -1,4 +1,5 @@
-import type { ISODate } from '@/types';
+// Relative, not the `@/` alias — see the note in src/data/plan.ts.
+import type { ISODate } from '../types.js';
 
 /** Local-timezone `YYYY-MM-DD`. Never use `toISOString()` here — it shifts to UTC. */
 export function iso(d: Date): ISODate {
