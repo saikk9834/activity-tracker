@@ -3,6 +3,7 @@ import {
   createRepository,
   EMPTY_DATA,
   MAX_NOTE_LENGTH,
+  MAX_SUBSTITUTION_LENGTH,
   type TrackerData,
   type TrackerRepository,
 } from '@/storage';
@@ -20,6 +21,8 @@ export interface TrackerStore {
   toggleCheck: (date: ISODate, exerciseId: ExerciseId) => ExerciseId[];
   /** Empty string clears the comment. */
   setNote: (date: ISODate, exerciseId: ExerciseId, note: string) => void;
+  /** Replaces the day's scheduled session; empty string restores it. */
+  setSubstitution: (date: ISODate, activity: string) => void;
   setWeight: (exerciseId: ExerciseId, weight: string) => void;
   setLink: (exerciseId: ExerciseId, url: string | null) => void;
   /** Rejects if the save fails, so the form can keep the user on the page. */
@@ -126,6 +129,20 @@ export function TrackerProvider({ children, repository }: Props) {
     [repo, persist],
   );
 
+  const setSubstitution = useCallback(
+    (date: ISODate, activity: string) => {
+      const trimmed = activity.trim().slice(0, MAX_SUBSTITUTION_LENGTH);
+      setData((prev) => {
+        const substitutions = { ...prev.substitutions };
+        if (trimmed) substitutions[date] = trimmed;
+        else delete substitutions[date];
+        return { ...prev, substitutions };
+      });
+      persist(repo.setSubstitution(date, trimmed || null));
+    },
+    [repo, persist],
+  );
+
   const setWeight = useCallback(
     (exerciseId: ExerciseId, weight: string) => {
       setData((prev) => ({ ...prev, weights: { ...prev.weights, [exerciseId]: weight } }));
@@ -174,6 +191,7 @@ export function TrackerProvider({ children, repository }: Props) {
       toggleDay,
       toggleCheck,
       setNote,
+      setSubstitution,
       setWeight,
       setLink,
       saveProfile,
@@ -188,6 +206,7 @@ export function TrackerProvider({ children, repository }: Props) {
       toggleDay,
       toggleCheck,
       setNote,
+      setSubstitution,
       setWeight,
       setLink,
       saveProfile,

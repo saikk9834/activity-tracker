@@ -1,6 +1,7 @@
 import { useEffect, useRef, type MouseEvent } from 'react';
 import { ExerciseNote } from '@/components/ExerciseNote';
 import { CheckIcon } from '@/components/icons';
+import { SessionSwap } from '@/components/SessionSwap';
 import { PLAN } from '@/data/plan';
 import { useCompleteDay } from '@/hooks/useCompleteDay';
 import { formatLongDate, fromIso, planIndex } from '@/lib/date';
@@ -29,6 +30,8 @@ export function DayEditor({ date, onClose }: Props) {
   const day = PLAN[planIndex(fromIso(date))]!;
   const checked = data.checks[date] ?? [];
   const isDone = !!data.done[date];
+  /** When set, the plan for this day is replaced by whatever the user did instead. */
+  const substituted = !!data.substitutions[date];
 
   useEffect(() => {
     closeRef.current?.focus();
@@ -75,38 +78,42 @@ export function DayEditor({ date, onClose }: Props) {
           <span className="count">{day.duration}</span>
         </div>
 
-        <ul className="checklist compact">
-          {day.items.map((item) => (
-            <li key={item.id}>
-              {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- control is the first child */}
-              <label className="checkrow">
-                <input
-                  type="checkbox"
-                  checked={checked.includes(item.id)}
-                  onChange={() => onToggle(item.id)}
-                />
-                <span className="box">
-                  <CheckIcon />
-                </span>
-                <span className="ex">
-                  <span className="n">{item.name}</span>
-                  <br />
-                  <span className="d">{item.detail}</span>
-                  <ExerciseNote date={date} exerciseId={item.id} />
-                </span>
-                {item.weight && (
-                  <span className="wt static" title="Working weight — change it on the Today tab">
-                    {data.weights[item.id] ?? item.weight}
+        {!substituted && (
+          <ul className="checklist compact">
+            {day.items.map((item) => (
+              <li key={item.id}>
+                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- control is the first child */}
+                <label className="checkrow">
+                  <input
+                    type="checkbox"
+                    checked={checked.includes(item.id)}
+                    onChange={() => onToggle(item.id)}
+                  />
+                  <span className="box">
+                    <CheckIcon />
                   </span>
-                )}
-              </label>
-            </li>
-          ))}
-        </ul>
+                  <span className="ex">
+                    <span className="n">{item.name}</span>
+                    <br />
+                    <span className="d">{item.detail}</span>
+                    <ExerciseNote date={date} exerciseId={item.id} />
+                  </span>
+                  {item.weight && (
+                    <span className="wt static" title="Working weight — change it on the Today tab">
+                      {data.weights[item.id] ?? item.weight}
+                    </span>
+                  )}
+                </label>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <SessionSwap date={date} />
 
         <div className="sheet-foot">
           <span className="count">
-            {checked.length} / {day.items.length} done
+            {substituted ? 'Substituted session' : `${checked.length} / ${day.items.length} done`}
           </span>
           {isDone ? (
             <span className="sheet-done">

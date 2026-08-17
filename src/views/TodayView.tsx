@@ -1,5 +1,6 @@
 import { ExerciseNote } from '@/components/ExerciseNote';
 import { CheckIcon } from '@/components/icons';
+import { SessionSwap } from '@/components/SessionSwap';
 import { VideoLinkRow } from '@/components/VideoLinkRow';
 import { WeightChip } from '@/components/WeightChip';
 import { PLAN } from '@/data/plan';
@@ -21,6 +22,8 @@ export function TodayView({ today, todayKey }: Props) {
   const day = PLAN[planIndex(today)]!;
   const checked = data.checks[todayKey] ?? [];
   const isDone = !!data.done[todayKey];
+  /** When set, the plan for today is replaced by whatever the user did instead. */
+  const substituted = !!data.substitutions[todayKey];
 
   const yesterday = iso(addDays(today, -1));
   const dayBefore = iso(addDays(today, -2));
@@ -47,34 +50,38 @@ export function TodayView({ today, todayKey }: Props) {
           <span className="count">{day.duration}</span>
         </div>
 
-        <ul className="checklist">
-          {day.items.map((item) => (
-            <li key={item.id}>
-              {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- control is the first child */}
-              <label className="checkrow">
-                <input
-                  type="checkbox"
-                  checked={checked.includes(item.id)}
-                  onChange={() => onToggle(item.id)}
-                />
-                <span className="box">
-                  <CheckIcon />
-                </span>
-                <span className="ex">
-                  <span className="n">{item.name}</span>
-                  <br />
-                  <span className="d">{item.detail}</span>
-                  <VideoLinkRow exerciseId={item.id} />
-                  <ExerciseNote date={todayKey} exerciseId={item.id} />
-                </span>
-                <WeightChip exercise={item} />
-              </label>
-            </li>
-          ))}
-        </ul>
+        {!substituted && (
+          <ul className="checklist">
+            {day.items.map((item) => (
+              <li key={item.id}>
+                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- control is the first child */}
+                <label className="checkrow">
+                  <input
+                    type="checkbox"
+                    checked={checked.includes(item.id)}
+                    onChange={() => onToggle(item.id)}
+                  />
+                  <span className="box">
+                    <CheckIcon />
+                  </span>
+                  <span className="ex">
+                    <span className="n">{item.name}</span>
+                    <br />
+                    <span className="d">{item.detail}</span>
+                    <VideoLinkRow exerciseId={item.id} />
+                    <ExerciseNote date={todayKey} exerciseId={item.id} />
+                  </span>
+                  <WeightChip exercise={item} />
+                </label>
+              </li>
+            ))}
+          </ul>
+        )}
 
-        {day.progression && <div className="prog-note">{day.progression}</div>}
-        <p className="plan-note">{day.note}</p>
+        {!substituted && day.progression && <div className="prog-note">{day.progression}</div>}
+        {!substituted && <p className="plan-note">{day.note}</p>}
+
+        <SessionSwap date={todayKey} />
 
         {isDone ? (
           <div className="done-banner">
@@ -86,7 +93,7 @@ export function TodayView({ today, todayKey }: Props) {
         ) : (
           <div className="today-foot">
             <span className="count">
-              {checked.length} / {day.items.length} done
+              {substituted ? 'Substituted session' : `${checked.length} / ${day.items.length} done`}
             </span>
             <button type="button" className="btn" onClick={() => completeDay(todayKey)}>
               Mark day complete

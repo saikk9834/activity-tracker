@@ -1,6 +1,12 @@
 import { supabase } from '@/lib/supabase';
 import type { ExerciseId, Gender, ISODate, Profile } from '@/types';
-import { EMPTY_DATA, MAX_NOTE_LENGTH, type TrackerData, type TrackerRepository } from './types';
+import {
+  EMPTY_DATA,
+  MAX_NOTE_LENGTH,
+  MAX_SUBSTITUTION_LENGTH,
+  type TrackerData,
+  type TrackerRepository,
+} from './types';
 
 function fail(context: string, error: { message: string } | null): void {
   if (error) throw new Error(`${context}: ${error.message}`);
@@ -28,10 +34,11 @@ export class SupabaseTrackerRepository implements TrackerRepository {
   constructor(private readonly userId: string) {}
 
   async load(): Promise<TrackerData> {
-    const [days, checks, notes, settings, profile] = await Promise.all([
+    const [days, checks, notes, swaps, settings, profile] = await Promise.all([
       supabase.from('logged_days').select('day').eq('user_id', this.userId),
       supabase.from('day_checks').select('day, exercise_id').eq('user_id', this.userId),
       supabase.from('day_notes').select('day, exercise_id, note').eq('user_id', this.userId),
+      supabase.from('day_substitutions').select('day, activity').eq('user_id', this.userId),
       supabase
         .from('exercise_settings')
         .select('exercise_id, weight, video_url')
@@ -47,6 +54,7 @@ export class SupabaseTrackerRepository implements TrackerRepository {
     fail('Loading logged days', days.error);
     fail('Loading checklists', checks.error);
     fail('Loading your comments', notes.error);
+    fail('Loading your substituted days', swaps.error);
     fail('Loading exercise settings', settings.error);
     fail('Loading your profile', profile.error);
 
@@ -55,6 +63,7 @@ export class SupabaseTrackerRepository implements TrackerRepository {
       done: {},
       checks: {},
       notes: {},
+      substitutions: {},
       weights: {},
       links: {},
       profile: profile.data
@@ -77,6 +86,8 @@ export class SupabaseTrackerRepository implements TrackerRepository {
     for (const row of notes.data ?? []) {
       (data.notes[row.day] ??= {})[row.exercise_id] = row.note;
     }
+
+    for (const row of swaps.data ?? []) data.substitutions[row.day] = row.activity;
 
     for (const row of settings.data ?? []) {
       if (row.weight) data.weights[row.exercise_id] = row.weight;
@@ -143,6 +154,28 @@ export class SupabaseTrackerRepository implements TrackerRepository {
         .eq('day', date)
         .eq('exercise_id', exerciseId);
       fail('Removing your comment', error);
+    }
+  }
+
+  async setSubstitution(date: ISODate, activity: string | null): Promise<void> {
+    if (activity) {
+      const { error } = await supabase.from('day_substitutions').upsert(
+        {
+          user_id: this.userId,
+          day: date,
+          activity: activity.slice(0, MAX_SUBSTITUTION_LENGTH),
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'user_id,day' },
+      );
+      fail('Saving what you did instead', error);
+    } else {
+      const { error } = await supabase
+        .from('day_substitutions')
+        .delete()
+        .eq('user_id', this.userId)
+        .eq('day', date);
+      fail('Restoring the scheduled session', error);
     }
   }
 

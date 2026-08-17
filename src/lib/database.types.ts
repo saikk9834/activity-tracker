@@ -43,6 +43,27 @@ export interface Database {
         };
         Relationships: [];
       };
+      day_substitutions: {
+        Row: {
+          user_id: string;
+          day: string;
+          activity: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          day: string;
+          activity: string;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          day?: string;
+          activity?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           user_id: string;

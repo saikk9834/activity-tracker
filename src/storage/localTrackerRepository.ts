@@ -34,6 +34,7 @@ export class LocalTrackerRepository implements TrackerRepository {
       done: read('done', EMPTY_DATA.done),
       checks: read('checks', EMPTY_DATA.checks),
       notes: read('notes', EMPTY_DATA.notes),
+      substitutions: read('substitutions', EMPTY_DATA.substitutions),
       weights: read('weights', EMPTY_DATA.weights),
       links: read('links', EMPTY_DATA.links),
       profile: read('profile', EMPTY_DATA.profile),
@@ -61,6 +62,13 @@ export class LocalTrackerRepository implements TrackerRepository {
     if (Object.keys(forDay).length) map[date] = forDay;
     else delete map[date];
     write('notes', map);
+  }
+
+  async setSubstitution(date: ISODate, activity: string | null): Promise<void> {
+    const map = read('substitutions', { ...EMPTY_DATA.substitutions });
+    if (activity) map[date] = activity;
+    else delete map[date];
+    write('substitutions', map);
   }
 
   async setWeight(exerciseId: ExerciseId, weight: string): Promise<void> {

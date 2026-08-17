@@ -75,7 +75,7 @@ export async function buildUserContext(
   const today = new Date(todayKey + 'T12:00:00');
   const historyStart = iso(addDays(today, -(HISTORY_DAYS - 1)));
 
-  const [days, checks, notes, settings, profile] = await Promise.all([
+  const [days, checks, notes, swaps, settings, profile] = await Promise.all([
     supabase.from('logged_days').select('day'),
     supabase.from('day_checks').select('day, exercise_id'),
     // Same window as the attendance history below — enough for the coach to
@@ -87,15 +87,29 @@ export async function buildUserContext(
       .lte('day', todayKey)
       .order('day', { ascending: true })
       .limit(MAX_NOTES),
+    supabase
+      .from('day_substitutions')
+      .select('day, activity')
+      .gte('day', historyStart)
+      .lte('day', todayKey)
+      .order('day', { ascending: true }),
     supabase.from('exercise_settings').select('exercise_id, weight'),
     supabase.from('profiles').select('name, age, gender, height_cm, weight_kg').maybeSingle(),
   ]);
 
-  const failure = days.error ?? checks.error ?? notes.error ?? settings.error ?? profile.error;
+  const failure =
+    days.error ?? checks.error ?? notes.error ?? swaps.error ?? settings.error ?? profile.error;
   if (failure) throw new Error(failure.message);
 
   const done: DoneMap = {};
   for (const row of (days.data ?? []) as { day: string }[]) done[row.day] = true;
+
+  // A substituted day is attendance kept doing something *other* than the plan,
+  // so it is marked everywhere the schedule is mentioned — not just listed once.
+  const swapped = new Map<string, string>();
+  for (const row of (swaps.data ?? []) as { day: string; activity: string }[]) {
+    swapped.set(row.day, row.activity.replace(/\s+/g, ' ').trim().slice(0, 400));
+  }
 
   const lines: string[] = [];
 
@@ -126,13 +140,20 @@ export async function buildUserContext(
     `Current streak: ${currentStreak(done, today)} days. Best streak: ${bestStreak(done)} days. Total sessions logged: ${totalSessions(done)}.`,
     `Today is ${done[todayKey] ? 'already logged' : 'not logged yet'}.`,
   );
+  if (swapped.has(todayKey)) {
+    lines.push(
+      `Today is SUBSTITUTED: the user did not do "${todaysPlan.title}". What they did instead: ${swapped.get(todayKey)}`,
+    );
+  }
 
   // ---- recent history ----
   const recent: string[] = [];
   for (let i = HISTORY_DAYS - 1; i >= 0; i--) {
     const d = addDays(today, -i);
+    const key = iso(d);
     recent.push(
-      `${iso(d)} ${DAY_NAMES[planIndex(d)]!.slice(0, 3)} ${done[iso(d)] ? 'done' : 'missed'}`,
+      `${key} ${DAY_NAMES[planIndex(d)]!.slice(0, 3)} ${done[key] ? 'done' : 'missed'}` +
+        (swapped.has(key) ? ' [SUBSTITUTED — not the scheduled session]' : ''),
     );
   }
   lines.push(`Last ${HISTORY_DAYS} days (oldest first):\n${recent.join('\n')}`);
@@ -162,6 +183,26 @@ export async function buildUserContext(
       ? `Exercises ticked off today: ${ticked.map(nameFor).join(', ')}.`
       : 'No exercises ticked off today yet.',
   );
+
+  // ---- substituted days ----
+  // Kept in its own section, above the comments, because these are categorically
+  // different: a comment describes how a prescribed exercise went, a
+  // substitution says the prescribed session did not happen at all.
+  if (swapped.size) {
+    const rendered = [...swapped.entries()].map(([dayKey, activity]) => {
+      const d = new Date(dayKey + 'T12:00:00');
+      const scheduled = PLAN[planIndex(d)]!.title;
+      const attended = done[dayKey] ? 'logged' : 'not logged';
+      return `${dayKey} (${DAY_NAMES[planIndex(d)]}, ${attended}) — scheduled "${scheduled}" did NOT happen. Did instead: ${activity}`;
+    });
+    lines.push(
+      `SUBSTITUTED DAYS in the last ${HISTORY_DAYS} days (oldest first).`,
+      `On these days the scheduled workout did not happen; the user trained differently — gym closed, travelling, no equipment — and recorded what they actually did. These are not comments on the plan's exercises: do not credit the user with the prescribed exercises, sets, reps or weights for these days, and do not use them as progression evidence for those lifts. A substituted day still counts as attendance and does not break the streak. Take the substitute activity into account when judging fatigue, recovery and what to do next:`,
+      rendered.join('\n'),
+    );
+  } else {
+    lines.push(`No substituted days in the last ${HISTORY_DAYS} days.`);
+  }
 
   // ---- session comments ----
   // What the user typed about how a given exercise actually went. Free text, so
