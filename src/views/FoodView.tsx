@@ -1,12 +1,15 @@
 import { DEFAULT_PROFILE } from '@/data/profileDefaults';
-import { bodyNumbers, formatNumber } from '@/lib/body';
+import { bodyNumbers } from '@/lib/body';
+import { displayWeight, weightRange } from '@/lib/units';
 import { useTracker } from '@/state/useTracker';
+import { useUnits } from '@/state/useUnits';
 
 /** Same derived targets as the Guide tab, so the two can't disagree. */
 const FALLBACK = bodyNumbers(DEFAULT_PROFILE)!;
 
 export function FoodView() {
   const { data } = useTracker();
+  const { units } = useUnits();
   const numbers = (data.profile && bodyNumbers(data.profile)) ?? FALLBACK;
   const weightKg = data.profile?.weightKg ?? DEFAULT_PROFILE.weightKg!;
   const midCalories = Math.round((numbers.calorieLow + numbers.calorieHigh) / 2 / 50) * 50;
@@ -20,8 +23,10 @@ export function FoodView() {
           kcal · every day
         </h2>
         <p className="small">
-          Muscle-building benefit plateaus around 1.6–1.8 g/kg — that’s{' '}
-          {Math.round(1.6 * weightKg)}–{Math.round(1.8 * weightKg)} g at {formatNumber(weightKg)} kg.{' '}
+          Muscle-building benefit plateaus around{' '}
+          {units === 'metric' ? '1.6–1.8 g/kg' : '0.7–0.8 g/lb'} — that’s{' '}
+          {Math.round(1.6 * weightKg)}–{Math.round(1.8 * weightKg)} g at{' '}
+          {displayWeight(weightKg, units)}.{' '}
           <strong>
             {numbers.proteinLow} g is the floor, {numbers.proteinHigh} g is a great day.
           </strong>{' '}
@@ -204,7 +209,8 @@ export function FoodView() {
             not the whole day.
           </li>
           <li>
-            <strong>Adjust by the trend:</strong> target 0.25–0.5 kg/week down on the 7-day average.
+            <strong>Adjust by the trend:</strong> target {weightRange(0.25, 0.5, units)}/week down
+            on the 7-day average.
             Faster → add ~150 kcal. Flat 2+ weeks <em>and</em> waist stuck → cut ~150 kcal. Scale
             flat but waist shrinking → recomposition working, change nothing.
           </li>

@@ -5,7 +5,9 @@ import { SessionSwap } from '@/components/SessionSwap';
 import { PLAN } from '@/data/plan';
 import { useCompleteDay } from '@/hooks/useCompleteDay';
 import { formatLongDate, fromIso, planIndex } from '@/lib/date';
+import { formatStoredWeight } from '@/lib/units';
 import { useTracker } from '@/state/useTracker';
+import { useUnits } from '@/state/useUnits';
 import type { ExerciseId, ISODate } from '@/types';
 
 interface Props {
@@ -24,6 +26,7 @@ interface Props {
  */
 export function DayEditor({ date, onClose }: Props) {
   const { data, toggleCheck, setDayDone } = useTracker();
+  const { units } = useUnits();
   const completeDay = useCompleteDay();
   const closeRef = useRef<HTMLButtonElement>(null);
 
@@ -100,7 +103,7 @@ export function DayEditor({ date, onClose }: Props) {
                   </span>
                   {item.weight && (
                     <span className="wt static" title="Working weight — change it on the Today tab">
-                      {data.weights[item.id] ?? item.weight}
+                      {formatStoredWeight(data.weights[item.id] ?? item.weight, units)}
                     </span>
                   )}
                 </label>

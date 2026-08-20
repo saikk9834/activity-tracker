@@ -1,6 +1,8 @@
 import { DEFAULT_PROFILE } from '@/data/profileDefaults';
 import { bodyNumbers, formatNumber } from '@/lib/body';
+import { displayWeight, weightRange, weightValue } from '@/lib/units';
 import { useTracker } from '@/state/useTracker';
+import { useUnits } from '@/state/useUnits';
 import type { TabId } from '@/types';
 
 /** Falls back to the plan's original figures until a profile is saved. */
@@ -8,6 +10,7 @@ const FALLBACK = bodyNumbers(DEFAULT_PROFILE)!;
 
 export function GuideView({ onOpenProfile }: { onOpenProfile: (tab: TabId) => void }) {
   const { data } = useTracker();
+  const { units } = useUnits();
   const profile = data.profile;
   const numbers = (profile && bodyNumbers(profile)) ?? FALLBACK;
   const personalised = profile !== null && bodyNumbers(profile) !== null;
@@ -26,8 +29,8 @@ export function GuideView({ onOpenProfile }: { onOpenProfile: (tab: TabId) => vo
                 <td className="num">{formatNumber(numbers.bmi)}</td>
                 <td className="muted small">
                   {profile?.weightKg && profile.heightCm && personalised
-                    ? `${formatNumber(profile.weightKg)} kg at ${formatNumber(profile.heightCm)} cm — ${numbers.bmiCategory}`
-                    : `${formatNumber(DEFAULT_PROFILE.weightKg!)} kg at ${formatNumber(DEFAULT_PROFILE.heightCm!)} cm — ${numbers.bmiCategory}`}
+                    ? `${displayWeight(profile.weightKg, units)} at ${formatNumber(profile.heightCm)} cm — ${numbers.bmiCategory}`
+                    : `${displayWeight(DEFAULT_PROFILE.weightKg!, units)} at ${formatNumber(DEFAULT_PROFILE.heightCm!)} cm — ${numbers.bmiCategory}`}
                 </td>
               </tr>
               <tr>
@@ -98,8 +101,10 @@ export function GuideView({ onOpenProfile }: { onOpenProfile: (tab: TabId) => vo
         </p>
         <h3>Track appearances, not outcomes</h3>
         <p className="small">
-          Your metric for the first 12 weeks is X’s per month (aim for 24+ here), not kilograms.
-          Weigh twice a week, judge only the 7-day average — daily ±1 kg swings are water, not fat.
+          Your metric for the first 12 weeks is X’s per month (aim for 24+ here), not{' '}
+          {units === 'metric' ? 'kilograms' : 'pounds'}.
+          Weigh twice a week, judge only the 7-day average — daily ±{displayWeight(1, units)} swings are
+          water, not fat.
         </p>
       </div>
 
@@ -113,8 +118,10 @@ export function GuideView({ onOpenProfile }: { onOpenProfile: (tab: TabId) => vo
           <li>
             Each exercise has a rep range (e.g. 8–12). When you complete{' '}
             <strong>all sets at the top of the range</strong> with honest form (~2 reps left in the
-            tank), add weight next session: <span className="mono">+2.5 kg</span> upper body,{' '}
-            <span className="mono">+5 kg</span> leg press and machines, next dumbbell up.
+            tank), add weight next session:{' '}
+            <span className="mono">{units === 'metric' ? '+2.5 kg' : '+5 lb'}</span> upper body,{' '}
+            <span className="mono">{units === 'metric' ? '+5 kg' : '+10 lb'}</span> leg press and
+            machines, next dumbbell up.
           </li>
           <li>The new weight drops you back to ~8 reps. Climb back to 12. Repeat.</li>
           <li>
@@ -143,7 +150,8 @@ export function GuideView({ onOpenProfile }: { onOpenProfile: (tab: TabId) => vo
         <p className="small muted">
           Warm-up before every lift: 5 min brisk incline walk, then one light set (~50%) of the
           first two exercises. The starting weights in this app are first guesses for an untrained
-          82 kg man — week 1’s job is to correct them and tap the chips to save yours.
+          {' '}{displayWeight(82, units)} man — week 1’s job is to correct them and tap the chips to
+          save yours.
         </p>
       </div>
 
@@ -199,7 +207,8 @@ export function GuideView({ onOpenProfile }: { onOpenProfile: (tab: TabId) => vo
               <tr>
                 <td className="num">Wk 1–2</td>
                 <td>
-                  Scale may drop 1–2 kg fast (water, not fat). Sleep improves. Soreness peaks, then
+                  Scale may drop {weightRange(1, 2, units)} fast (water, not fat). Sleep improves.
+                  Soreness peaks, then
                   fades for good.
                 </td>
               </tr>
@@ -210,13 +219,16 @@ export function GuideView({ onOpenProfile }: { onOpenProfile: (tab: TabId) => vo
               <tr>
                 <td className="num">Wk 4–6</td>
                 <td>
-                  <em>You</em> see it: leaner face, looser waistband. −1.5 to −3 kg; waist −1 to −3
-                  cm.
+                  <em>You</em> see it: leaner face, looser waistband. −{weightValue(1.5, units)} to
+                  −{displayWeight(3, units)}; waist −1 to −3 cm.
                 </td>
               </tr>
               <tr>
                 <td className="num">Wk 8–12</td>
-                <td>Others notice. −3 to −5 kg, waist −3 to −6 cm, every lift up 30–60%.</td>
+                <td>
+                  Others notice. −{weightValue(3, units)} to −{displayWeight(5, units)}, waist −3 to
+                  −6 cm, every lift up 30–60%.
+                </td>
               </tr>
               <tr>
                 <td className="num">Mo 4–6</td>

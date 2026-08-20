@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { FlameIcon } from './icons';
+import { UnitToggle } from './UnitToggle';
 import { useAuth } from '@/state/useAuth';
 import { useTracker } from '@/state/useTracker';
 
@@ -35,21 +36,24 @@ export function Header({ streak, onOpenProfile }: Props) {
       <p className="sub">
         Your 12-week lean plan — YMCA pool + gym, vegetarian fuel, one X per day.
       </p>
-      {session && (
-        <div className="acct">
-          <button
-            type="button"
-            className="linkbtn acct-email"
-            onClick={onOpenProfile}
-            title="Open your profile"
-          >
-            {label}
-          </button>
-          <button type="button" className="linkbtn" onClick={onSignOut} disabled={signingOut}>
-            {signingOut ? 'signing out…' : 'sign out'}
-          </button>
-        </div>
-      )}
+      <div className="acct">
+        {session && (
+          <>
+            <button
+              type="button"
+              className="linkbtn acct-email"
+              onClick={onOpenProfile}
+              title="Open your profile"
+            >
+              {label}
+            </button>
+            <button type="button" className="linkbtn" onClick={onSignOut} disabled={signingOut}>
+              {signingOut ? 'signing out…' : 'sign out'}
+            </button>
+          </>
+        )}
+        <UnitToggle />
+      </div>
       <div className="lane" aria-hidden="true" />
     </header>
   );

@@ -4,6 +4,7 @@ import { PLAN } from '../src/data/plan.js';
 import { addDays, iso, planIndex } from '../src/lib/date.js';
 import { bestStreak, currentStreak, totalSessions } from '../src/lib/streak.js';
 import type { DoneMap } from '../src/lib/streak.js';
+import { displayWeight, formatStoredWeight, weightUnit, type Units } from '../src/lib/units.js';
 
 /**
  * Files prefixed with `_` are not routed as endpoints by Vercel, so this is a
@@ -43,11 +44,18 @@ export function clientForToken(url: string, anonKey: string, authorization: stri
   });
 }
 
-/** The weekly schedule, rendered from the same PLAN the app displays. */
-export function planSchedule(): string {
+/**
+ * The weekly schedule, rendered from the same PLAN the app displays. Takes the
+ * display units so the plan's default weights match the user's own figures —
+ * a prompt mixing kg and lb invites the model to answer in the wrong one.
+ */
+export function planSchedule(units: Units): string {
   return PLAN.map((day) => {
     const items = day.items
-      .map((i) => `${i.name} (${i.detail}${i.weight ? `, default ${i.weight}` : ''})`)
+      .map(
+        (i) =>
+          `${i.name} (${i.detail}${i.weight ? `, default ${formatStoredWeight(i.weight, units)}` : ''})`,
+      )
       .join('; ');
     return `- ${day.name} — ${day.title} [${day.tagLabel}, ${day.duration}]: ${items}. ${day.note}`;
   }).join('\n');
@@ -71,6 +79,7 @@ const num = (v: number | string | null | undefined): number | null => {
 export async function buildUserContext(
   supabase: SupabaseClient,
   todayKey: string,
+  units: Units = 'metric',
 ): Promise<string> {
   const today = new Date(todayKey + 'T12:00:00');
   const historyStart = iso(addDays(today, -(HISTORY_DAYS - 1)));
@@ -112,6 +121,9 @@ export async function buildUserContext(
   }
 
   const lines: string[] = [];
+  lines.push(
+    `The user reads and enters weights in ${units === 'metric' ? 'kilograms' : 'pounds'}. Every weight below is already in ${weightUnit(units)} — use that unit in your replies and do not convert.`,
+  );
 
   // ---- profile ----
   const p = (profile.data ?? null) as ProfileRow | null;
@@ -123,7 +135,7 @@ export async function buildUserContext(
       p.age ? `age ${p.age}` : null,
       p.gender && p.gender !== 'unspecified' ? `gender ${p.gender}` : null,
       heightCm ? `height ${heightCm} cm` : null,
-      weightKg ? `weight ${weightKg} kg` : null,
+      weightKg ? `weight ${displayWeight(weightKg, units)}` : null,
     ].filter(Boolean);
     lines.push(`Profile: ${bits.length ? bits.join(', ') : 'not filled in yet'}.`);
     if (heightCm && weightKg) {
@@ -233,7 +245,7 @@ export async function buildUserContext(
   // ---- working weights ----
   const weights = ((settings.data ?? []) as { exercise_id: string; weight: string | null }[])
     .filter((r) => r.weight)
-    .map((r) => `${nameFor(r.exercise_id)} ${r.weight}`);
+    .map((r) => `${nameFor(r.exercise_id)} ${formatStoredWeight(r.weight!, units)}`);
   lines.push(
     weights.length
       ? `Current working weights (these override the plan defaults): ${weights.join(', ')}.`

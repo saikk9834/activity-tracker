@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import type { Units } from './units';
 import type { ISODate } from '@/types';
 
 export interface CoachTurn {
@@ -15,7 +16,11 @@ export interface CoachTurn {
  * Supabase session token, which the function uses to read their rows under
  * row-level security.
  */
-export async function askCoach(messages: CoachTurn[], today: ISODate): Promise<string> {
+export async function askCoach(
+  messages: CoachTurn[],
+  today: ISODate,
+  units: Units,
+): Promise<string> {
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token;
   if (!token) throw new Error('Your session expired — sign in again.');
@@ -25,7 +30,7 @@ export async function askCoach(messages: CoachTurn[], today: ISODate): Promise<s
     response = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ messages, today }),
+      body: JSON.stringify({ messages, today, units }),
     });
   } catch {
     throw new Error('Could not reach the coach. Check your connection.');

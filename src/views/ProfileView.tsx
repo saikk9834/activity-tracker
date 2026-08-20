@@ -1,8 +1,10 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { DEFAULT_PROFILE } from '@/data/profileDefaults';
 import { bodyNumbers, formatNumber } from '@/lib/body';
+import { displayWeight, lbToKg, weightUnit, weightValue, type Units } from '@/lib/units';
 import { useFeedback } from '@/state/useFeedback';
 import { useTracker } from '@/state/useTracker';
+import { useUnits } from '@/state/useUnits';
 import type { Gender, Profile } from '@/types';
 
 const GENDER_OPTIONS: { value: Gender; label: string }[] = [
@@ -12,21 +14,25 @@ const GENDER_OPTIONS: { value: Gender; label: string }[] = [
   { value: 'unspecified', label: 'Prefer not to say' },
 ];
 
-/** Form state is strings — an in-progress "18" shouldn't become the number 18. */
+/**
+ * Form state is strings — an in-progress "18" shouldn't become the number 18.
+ * `weight` is in whatever units the user is reading; it converts back to kg on
+ * the way into the profile, which stays canonical.
+ */
 interface FormState {
   name: string;
   age: string;
   gender: Gender;
   heightCm: string;
-  weightKg: string;
+  weight: string;
 }
 
-const toForm = (p: Profile): FormState => ({
+const toForm = (p: Profile, units: Units): FormState => ({
   name: p.name,
   age: p.age?.toString() ?? '',
   gender: p.gender,
   heightCm: p.heightCm?.toString() ?? '',
-  weightKg: p.weightKg?.toString() ?? '',
+  weight: p.weightKg === null ? '' : weightValue(p.weightKg, units),
 });
 
 function parseNumber(value: string): number | null {
@@ -36,55 +42,62 @@ function parseNumber(value: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-const toProfile = (f: FormState): Profile => ({
-  name: f.name.trim(),
-  age: parseNumber(f.age),
-  gender: f.gender,
-  heightCm: parseNumber(f.heightCm),
-  weightKg: parseNumber(f.weightKg),
-});
+const toProfile = (f: FormState, units: Units): Profile => {
+  const typed = parseNumber(f.weight);
+  return {
+    name: f.name.trim(),
+    age: parseNumber(f.age),
+    gender: f.gender,
+    heightCm: parseNumber(f.heightCm),
+    weightKg: typed === null ? null : units === 'metric' ? typed : lbToKg(typed),
+  };
+};
 
 /** Matches the CHECK constraints in supabase/migrations/0002_profiles.sql. */
-function validate(f: FormState): string | null {
-  const { age, heightCm, weightKg } = toProfile(f);
+function validate(f: FormState, units: Units): string | null {
+  const { age, heightCm, weightKg } = toProfile(f, units);
   if (f.age.trim() && (age === null || age < 13 || age > 120))
     return 'Age needs to be between 13 and 120.';
   if (f.heightCm.trim() && (heightCm === null || heightCm < 90 || heightCm > 250))
     return 'Height needs to be between 90 and 250 cm.';
-  if (f.weightKg.trim() && (weightKg === null || weightKg < 25 || weightKg > 400))
-    return 'Weight needs to be between 25 and 400 kg.';
+  // Bounds are checked in kg, but reported in the units on screen.
+  if (f.weight.trim() && (weightKg === null || weightKg < 25 || weightKg > 400))
+    return `Weight needs to be between ${displayWeight(25, units)} and ${displayWeight(400, units)}.`;
   return null;
 }
 
 export function ProfileView() {
   const { data, saveProfile } = useTracker();
+  const { units } = useUnits();
   const { showToast } = useFeedback();
 
   // No profile yet: prefill with what the Guide was hardcoded to.
-  const [form, setForm] = useState<FormState>(() => toForm(data.profile ?? DEFAULT_PROFILE));
+  const [form, setForm] = useState<FormState>(() => toForm(data.profile ?? DEFAULT_PROFILE, units));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Keeps the form honest if the data reloads underneath it (e.g. after retry).
+  // Keeps the form honest if the data reloads underneath it (e.g. after retry),
+  // and re-renders the weight field when the units toggle flips.
   useEffect(() => {
-    if (data.profile) setForm(toForm(data.profile));
-  }, [data.profile]);
+    setForm((prev) => toForm(data.profile ?? toProfile(prev, units), units));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `prev` supplies the unsaved edits
+  }, [data.profile, units]);
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
-  const preview = bodyNumbers(toProfile(form));
+  const preview = bodyNumbers(toProfile(form, units));
   const isNew = data.profile === null;
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    const problem = validate(form);
+    const problem = validate(form, units);
     setError(problem);
     if (problem) return;
 
     setBusy(true);
     try {
-      await saveProfile(toProfile(form));
+      await saveProfile(toProfile(form, units));
       showToast('Profile saved.');
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -163,15 +176,15 @@ export function ProfileView() {
             </label>
 
             <label className="field">
-              <span className="flabel">Weight (kg)</span>
+              <span className="flabel">Weight ({weightUnit(units)})</span>
               <input
                 type="number"
                 inputMode="decimal"
-                step="0.1"
-                value={form.weightKg}
-                onChange={(e) => set('weightKg', e.target.value)}
-                min={25}
-                max={400}
+                step={units === 'metric' ? '0.1' : '0.5'}
+                value={form.weight}
+                onChange={(e) => set('weight', e.target.value)}
+                min={Number(weightValue(25, units))}
+                max={Number(weightValue(400, units))}
                 disabled={busy}
               />
             </label>
@@ -225,7 +238,10 @@ export function ProfileView() {
                     <td className="num">
                       {preview.proteinLow}–{preview.proteinHigh} g
                     </td>
-                    <td className="muted small">1.6–1.8 g/kg</td>
+                    <td className="muted small">
+                      1.6–1.8 g/kg
+                      {units === 'imperial' && ' (0.7–0.8 g/lb)'}
+                    </td>
                   </tr>
                 </tbody>
               </table>

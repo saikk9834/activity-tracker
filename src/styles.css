@@ -267,6 +267,15 @@ details.day.today-hl{border-color:var(--accent)}
 .acct-email{color:var(--muted);font-family:var(--mono);font-size:.75rem;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:min(60vw,32ch)}
 
+/* ---------- units toggle ---------- */
+/* Pushed to the end of the account row so it sits at the far right of the bar. */
+.units{margin-left:auto;display:inline-flex;border:1px solid var(--line);
+  border-radius:999px;overflow:hidden;flex:none}
+.units button{font-family:var(--mono);font-size:.72rem;letter-spacing:.04em;
+  background:none;border:none;color:var(--muted);padding:3px 10px;cursor:pointer}
+.units button.on{background:var(--accent);color:#fff}
+.units button:focus-visible{outline:2px solid var(--ring);outline-offset:-2px}
+
 /* ---------- alerts ---------- */
 .alert{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
   background:var(--amber-soft);border:1px solid var(--amber);color:var(--amber-ink);

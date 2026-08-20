@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { askCoach, type CoachTurn } from '@/lib/coach';
 import { useTracker } from '@/state/useTracker';
+import { useUnits } from '@/state/useUnits';
 import type { ISODate } from '@/types';
 
 const SUGGESTIONS = [
@@ -16,6 +17,7 @@ interface Props {
 
 export function CoachView({ todayKey }: Props) {
   const { data } = useTracker();
+  const { units } = useUnits();
   const [turns, setTurns] = useState<CoachTurn[]>([]);
   const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState(false);
@@ -38,7 +40,7 @@ export function CoachView({ todayKey }: Props) {
     setBusy(true);
 
     try {
-      const reply = await askCoach(next, todayKey);
+      const reply = await askCoach(next, todayKey, units);
       setTurns([...next, { role: 'assistant', content: reply }]);
     } catch (err) {
       // The question stays on screen so it can be retried without retyping.

@@ -4,6 +4,7 @@ import Anthropic from '@anthropic-ai/sdk';
 // does not guess extensions. Extensionless works under Vite/tsx and then fails
 // at boot in production with ERR_MODULE_NOT_FOUND.
 import { buildUserContext, clientForToken, planSchedule, supabaseConfig } from './_context.js';
+import type { Units } from '../src/lib/units.js';
 
 /**
  * POST /api/chat — the AI coach.
@@ -36,8 +37,12 @@ const json = (body: unknown, status = 200) =>
     headers: { 'Content-Type': 'application/json' },
   });
 
-/** Static half of the system prompt — identical on every request, so it caches. */
-function coachInstructions(): string {
+/**
+ * Static half of the system prompt. Identical on every request for a given unit
+ * preference, so it still caches — two variants at most, and a user only ever
+ * hits one of them.
+ */
+function coachInstructions(units: Units): string {
   return `You are the coach inside Streakline, a 12-week training app. You answer the
 user's questions about their own training: what today's session is, how their
 streak and attendance look, whether to add weight, how to scale a session, how
@@ -46,11 +51,11 @@ the plan works, and what to eat around it.
 <weekly_plan>
 The template repeats every week for all 12 weeks:
 
-${planSchedule()}
+${planSchedule(units)}
 
 Progression rule (double progression): each exercise has a rep range. When every
 set hits the top of the range with about 2 reps left in the tank, add weight next
-session — +2.5 kg upper body, +5 kg leg press and machines, or the next dumbbell
+session — ${units === 'metric' ? '+2.5 kg upper body, +5 kg leg press and machines' : '+5 lb upper body, +10 lb leg press and machines'}, or the next dumbbell
 up. The new weight drops them back to the bottom of the range; they climb back up.
 If they can't beat their logbook two sessions running, the weight stays.
 
@@ -60,13 +65,13 @@ with three lifts and nothing else is a successful week.
 Effort dial: weeks 1-2 stop 3-4 reps short of failure, weeks 3-6 stop 2-3 short,
 weeks 7-12 stop 1-2 short on the last set of each exercise.
 
-Nutrition frame: mild calorie deficit, high protein (1.6-1.8 g per kg of
+Nutrition frame: mild calorie deficit, high protein (${units === 'metric' ? '1.6-1.8 g per kg' : '0.7-0.8 g per lb'} of
 bodyweight), vegetarian, spread as 30-40 g across four meals, each anchored by a
 protein-dense food (whey, soy chunks, Greek yogurt, tofu, milk). Liquid calories
 are the main budget leak. Creatine monohydrate 3-5 g/day is the one supplement
 worth adding besides whey.
 
-What to expect: weeks 1-2 a fast 1-2 kg drop that is water, not fat; weeks 4-6
+What to expect: weeks 1-2 a fast ${units === 'metric' ? '1-2 kg' : '2-4 lb'} drop that is water, not fat; weeks 4-6
 they notice a leaner face and looser waistband; weeks 8-12 others notice, with
 every lift up 30-60%. The scale stalls for 1-2 week stretches while the waist
 keeps shrinking — that is the plan working, not failing.
@@ -164,13 +169,16 @@ export async function POST(request: Request): Promise<Response> {
       ? body.today
       : new Date().toISOString().slice(0, 10);
 
+  // Display units are the caller's preference; anything unrecognised is metric.
+  const units: Units = body.units === 'imperial' ? 'imperial' : 'metric';
+
   const supabase = clientForToken(config.url, config.anonKey, authorization);
   const { data: userData, error: userError } = await supabase.auth.getUser();
   if (userError || !userData?.user) return json({ error: 'Sign in to use the coach.' }, 401);
 
   let userContext: string;
   try {
-    userContext = await buildUserContext(supabase, today);
+    userContext = await buildUserContext(supabase, today, units);
   } catch (err) {
     console.error('context build failed', err);
     return json({ error: 'Could not read your training data.' }, 500);
@@ -194,7 +202,7 @@ export async function POST(request: Request): Promise<Response> {
       // costing quality here.
       output_config: { effort: 'medium' },
       system: [
-        { type: 'text', text: coachInstructions(), cache_control: { type: 'ephemeral' } },
+        { type: 'text', text: coachInstructions(units), cache_control: { type: 'ephemeral' } },
         { type: 'text', text: `<user_data>\n${userContext}\n</user_data>` },
       ],
       messages: turns,
