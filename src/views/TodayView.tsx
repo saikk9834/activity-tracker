@@ -7,7 +7,9 @@ import { PLAN } from '@/data/plan';
 import { useCompleteDay } from '@/hooks/useCompleteDay';
 import { addDays, formatLongDate, iso, planIndex } from '@/lib/date';
 import { currentStreak } from '@/lib/streak';
+import { localiseIncrements } from '@/lib/units';
 import { useTracker } from '@/state/useTracker';
+import { useUnits } from '@/state/useUnits';
 import type { ISODate } from '@/types';
 
 interface Props {
@@ -17,6 +19,7 @@ interface Props {
 
 export function TodayView({ today, todayKey }: Props) {
   const { data, toggleCheck, setDayDone } = useTracker();
+  const { units } = useUnits();
   const completeDay = useCompleteDay();
 
   const day = PLAN[planIndex(today)]!;
@@ -78,7 +81,9 @@ export function TodayView({ today, todayKey }: Props) {
           </ul>
         )}
 
-        {!substituted && day.progression && <div className="prog-note">{day.progression}</div>}
+        {!substituted && day.progression && (
+          <div className="prog-note">{localiseIncrements(day.progression, units)}</div>
+        )}
         {!substituted && <p className="plan-note">{day.note}</p>}
 
         <SessionSwap date={todayKey} />

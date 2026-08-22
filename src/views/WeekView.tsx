@@ -2,10 +2,13 @@ import { useState } from 'react';
 import { VideoLinkRow } from '@/components/VideoLinkRow';
 import { PLAN } from '@/data/plan';
 import { planIndex } from '@/lib/date';
+import { formatStoredWeight, localiseIncrements } from '@/lib/units';
 import { useTracker } from '@/state/useTracker';
+import { useUnits } from '@/state/useUnits';
 
 export function WeekView({ today }: { today: Date }) {
   const { data } = useTracker();
+  const { units } = useUnits();
   const todayIndex = planIndex(today);
   const [open, setOpen] = useState<Record<number, boolean>>({ [todayIndex]: true });
 
@@ -40,7 +43,8 @@ export function WeekView({ today }: { today: Date }) {
             <div className="inner">
               <ul className="exlist">
                 {day.items.map((item) => {
-                  const weight = item.weight ? (data.weights[item.id] ?? item.weight) : null;
+                  const stored = item.weight ? (data.weights[item.id] ?? item.weight) : null;
+                  const weight = stored && formatStoredWeight(stored, units);
                   return (
                     <li key={item.id}>
                       <div className="xtop">
@@ -59,7 +63,9 @@ export function WeekView({ today }: { today: Date }) {
                   );
                 })}
               </ul>
-              {day.progression && <div className="prog-note">{day.progression}</div>}
+              {day.progression && (
+                <div className="prog-note">{localiseIncrements(day.progression, units)}</div>
+              )}
               <p className="plan-note">{day.note}</p>
             </div>
           </details>

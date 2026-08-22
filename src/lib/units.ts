@@ -76,6 +76,26 @@ export function formatStoredWeight(stored: string, units: Units): string {
 }
 
 /**
+ * Plate jumps, substituted rather than converted: a 2.5 kg step is a 5 lb step
+ * in an imperial gym, not 5.5 lb — no such plate exists. Matches the increments
+ * quoted on the Guide tab and in the coach's prompt.
+ */
+const INCREMENTS: Record<string, string> = { '2.5': '5 lb', '5': '10 lb' };
+
+/**
+ * Rewrites the kg increments inside a progression sentence for imperial readers.
+ * Only `<number> kg` is touched; a figure with no stocked equivalent falls back
+ * to a plain conversion rather than being left in the wrong unit.
+ */
+export function localiseIncrements(text: string, units: Units): string {
+  if (units === 'metric') return text;
+  return text.replace(
+    /(\d+(?:\.\d+)?)\s*kg/g,
+    (_, n: string) => INCREMENTS[n] ?? `${weightValue(Number(n), 'imperial')} lb`,
+  );
+}
+
+/**
  * Turns what the user typed — in whatever units they're currently reading — back
  * into the kg string we store. Unparseable text is stored verbatim.
  */
