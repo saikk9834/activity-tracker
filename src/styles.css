@@ -323,6 +323,47 @@ details.day.today-hl{border-color:var(--accent)}
 .chat-input .btn{flex:none;padding:11px 18px}
 .chat-input .btn:disabled{opacity:.5;cursor:default}
 
+/* ---------- coach chat: sessions ---------- */
+.chat-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.chat-panes{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;flex:none}
+.chat-panes button{font-family:var(--display);font-weight:600;font-size:.8rem;
+  background:none;border:none;color:var(--muted);padding:5px 13px;cursor:pointer}
+.chat-panes button.on{background:var(--accent);color:#fff}
+:root[data-theme="dark"] .chat-panes button.on{color:#07171A}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .chat-panes button.on{color:#07171A}
+}
+.chat-panes button:focus-visible{outline:2px solid var(--ring);outline-offset:-2px}
+.chat-actions{display:inline-flex;align-items:center;gap:14px;font-size:.8rem}
+.chat-savenote{margin:0}
+
+/* Bookmark toggle — a real switch, so its on/off state is readable at a glance. */
+.switch{display:inline-flex;align-items:center;gap:7px;background:none;border:none;padding:0;
+  font:inherit;font-size:.8rem;color:var(--muted);cursor:pointer}
+.switch:disabled{opacity:.45;cursor:default}
+.switch-track{width:32px;height:18px;border-radius:999px;background:var(--miss);
+  border:1px solid var(--line);position:relative;transition:background .15s;flex:none}
+.switch-knob{position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;
+  background:var(--card);box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform .15s}
+.switch[aria-checked="true"]{color:var(--amber-ink);font-weight:600}
+.switch[aria-checked="true"] .switch-track{background:var(--amber);border-color:var(--amber)}
+.switch[aria-checked="true"] .switch-knob{transform:translateX(14px)}
+.switch:focus-visible{outline:2px solid var(--ring);outline-offset:3px;border-radius:4px}
+@media (prefers-reduced-motion: reduce){
+  .switch-track,.switch-knob{transition:none}
+}
+
+/* ---------- coach chat: bookmark list ---------- */
+.saved-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.saved-item{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 13px}
+.saved-item.current{border-color:var(--accent)}
+.saved-open{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;text-align:left;
+  background:none;border:none;padding:0;font:inherit;color:var(--ink);cursor:pointer}
+.saved-open:focus-visible{outline:2px solid var(--ring);outline-offset:2px;border-radius:4px}
+.saved-name{font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.saved-actions{display:inline-flex;gap:12px;flex:none;font-size:.8rem}
+
 /* ---------- splash ---------- */
 .splash{padding:28px 0;text-align:center}
 .splash .lane{max-width:200px;margin:0 auto 12px}

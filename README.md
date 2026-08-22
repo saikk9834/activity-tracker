@@ -17,7 +17,7 @@ npm install
 
 **2. Create the tables.** Open Dashboard → SQL Editor → New query and run each file in
 `supabase/migrations/` in order (`0001_init.sql`, `0002_profiles.sql`,
-`0003_day_notes.sql`, then `0004_day_substitutions.sql`). Every table
+`0003_day_notes.sql`, `0004_day_substitutions.sql`, then `0005_coach_chats.sql`). Every table
 gets row-level security with an `auth.uid() = user_id` policy, so a signed-in user can only
 ever touch their own rows.
 

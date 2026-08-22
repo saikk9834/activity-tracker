@@ -64,6 +64,39 @@ export interface Database {
         };
         Relationships: [];
       };
+      coach_chats: {
+        Row: {
+          session_id: string;
+          user_id: string;
+          user_name: string;
+          chat_name: string;
+          chat: unknown;
+          bookmark: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          session_id: string;
+          user_id: string;
+          user_name?: string;
+          chat_name?: string;
+          chat?: unknown;
+          bookmark?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          session_id?: string;
+          user_id?: string;
+          user_name?: string;
+          chat_name?: string;
+          chat?: unknown;
+          bookmark?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           user_id: string;
