@@ -7,6 +7,7 @@ export const TABS: { id: TabId; label: string }[] = [
   { id: 'guide', label: 'Guide' },
   { id: 'food', label: 'Food' },
   { id: 'stats', label: 'Streak' },
+  { id: 'gallery', label: 'Photos' },
   { id: 'profile', label: 'Profile' },
 ];
 

@@ -64,6 +64,33 @@ export interface Database {
         };
         Relationships: [];
       };
+      progress_photos: {
+        Row: {
+          id: string;
+          user_id: string;
+          day: string;
+          storage_path: string;
+          caption: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          day: string;
+          storage_path: string;
+          caption?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          day?: string;
+          storage_path?: string;
+          caption?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       coach_chats: {
         Row: {
           session_id: string;

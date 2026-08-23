@@ -17,9 +17,13 @@ npm install
 
 **2. Create the tables.** Open Dashboard → SQL Editor → New query and run each file in
 `supabase/migrations/` in order (`0001_init.sql`, `0002_profiles.sql`,
-`0003_day_notes.sql`, `0004_day_substitutions.sql`, then `0005_coach_chats.sql`). Every table
-gets row-level security with an `auth.uid() = user_id` policy, so a signed-in user can only
-ever touch their own rows.
+`0003_day_notes.sql`, `0004_day_substitutions.sql`, `0005_coach_chats.sql`, then
+`0006_progress_photos.sql`). Every table gets row-level security with an
+`auth.uid() = user_id` policy, so a signed-in user can only ever touch their own rows.
+
+The last one also creates the private `progress-photos` Storage bucket the gallery uses,
+with policies keyed on the first path segment (`<user_id>/…`) — same rule, applied to
+files instead of rows.
 
 **3. Add credentials.** Create a `.env` with the two values from Project Settings → API:
 
@@ -145,7 +149,7 @@ src/
   state/                   AuthProvider, TrackerProvider (data), FeedbackProvider (toast/modal)
   hooks/                   useToday (midnight rollover), useCompleteDay
   components/              Header, Tabs, WeightChip, VideoLinkRow, ExerciseNote, DayEditor, SessionSwap, AuthScreen, …
-  views/                   one file per tab — Today, Week, Coach, Guide, Food, Stats, Profile
+  views/                   one file per tab — Today, Week, Coach, Guide, Food, Stats, Gallery, Profile
   styles.css               the original stylesheet plus auth/account/chat styles
 supabase/migrations/       SQL to run in the dashboard
 api/                       Vercel Functions — the AI coach's server side

@@ -7,6 +7,7 @@ import { currentStreak } from '@/lib/streak';
 import { useTracker } from '@/state/useTracker';
 import { CoachView } from '@/views/CoachView';
 import { FoodView } from '@/views/FoodView';
+import { GalleryView } from '@/views/GalleryView';
 import { GuideView } from '@/views/GuideView';
 import { ProfileView } from '@/views/ProfileView';
 import { StatsView } from '@/views/StatsView';
@@ -71,6 +72,7 @@ export function App({ migrationError = null }: Props) {
               {tab === 'guide' && <GuideView onOpenProfile={onChangeTab} />}
               {tab === 'food' && <FoodView />}
               {tab === 'stats' && <StatsView today={today} />}
+              {tab === 'gallery' && <GalleryView todayKey={todayKey} />}
               {tab === 'profile' && <ProfileView />}
             </>
           )}

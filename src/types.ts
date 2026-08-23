@@ -32,7 +32,15 @@ export interface Milestone {
   quote: string;
 }
 
-export type TabId = 'today' | 'week' | 'coach' | 'guide' | 'food' | 'stats' | 'profile';
+export type TabId =
+  | 'today'
+  | 'week'
+  | 'coach'
+  | 'guide'
+  | 'food'
+  | 'stats'
+  | 'gallery'
+  | 'profile';
 
 export type Gender = 'male' | 'female' | 'other' | 'unspecified';
 
